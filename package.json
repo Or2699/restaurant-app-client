@@ -1,7 +1,7 @@
 {
   "name": "restaurant-client-frontend",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
@@ -9,10 +9,29 @@
     "web": "expo start --web"
   },
   "dependencies": {
-    "expo": "~55.0.8",
-    "expo-status-bar": "~55.0.4",
+    "@expo/metro-runtime": "~55.0.7",
+    "@react-native-async-storage/async-storage": "2.2.0",
+    "axios": "^1.15.0",
+    "expo": "~55.0.15",
+    "expo-camera": "~55.0.15",
+    "expo-constants": "~55.0.9",
+    "expo-image-picker": "~55.0.18",
+    "expo-linking": "~55.0.13",
+    "expo-location": "~55.1.8",
+    "expo-router": "~55.0.12",
+    "expo-screen-orientation": "~55.0.13",
+    "expo-sharing": "~55.0.18",
+    "expo-speech": "~55.0.13",
+    "expo-status-bar": "~55.0.5",
+    "lucide-react-native": "^1.7.0",
     "react": "19.2.0",
-    "react-native": "0.83.2"
+    "react-dom": "19.2.0",
+    "react-native": "0.83.4",
+    "react-native-gesture-handler": "~2.30.0",
+    "react-native-maps": "1.27.2",
+    "react-native-safe-area-context": "~5.6.2",
+    "react-native-screens": "~4.23.0",
+    "react-native-web": "^0.21.0"
   },
   "private": true
 }
