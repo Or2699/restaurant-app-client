@@ -4,12 +4,12 @@ import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { ThemeContext } from '../context/ThemeContext.js';
 import { SIZES } from '../constants/sizes.js';
 
-const DishCard = ({ product }) => {
+const DishCard = ({ product , onAddPress }) => {
     const { theme , language , isDarkMode } = useContext(ThemeContext);
 
     //חילוץ הנתונים מהמוצר
-    const displayName = product.name[language] || product.name.he;
-    const displayDescription = product.description[language] || product.description.he; 
+    const displayName = typeof product.name === 'object' ? (product.name[language] || product.name.he) : product.name;
+    const displayDescription = typeof product.description === 'object' ? (product.description[language] || product.description.he) : product.description;
 
     return (
         <TouchableOpacity style = {[styles.card , {backgroundColor : theme.card , borderColor : theme.border}]} activeOpacity={0.8} >{/* כרטיס לחיצה על המנה - הרכיב הוא כפתור שעוטף את כולם והופך את כל מי שבתוכו ללחיץ */ }
@@ -22,16 +22,27 @@ const DishCard = ({ product }) => {
                 <Text style = {[styles.category , { color: isDarkMode ? '#fff' : theme.primary }]}>{product.category.toUpperCase()}</Text>
                 <Text style = {[styles.description , {color : theme.text}]} numberOfLines={3}>{displayDescription}</Text>
 
-                {/* בודקים אם יש תגיות והיערות למנה ומציגים אותן */ }
-                {product.tags && product.tags.length > 0 && (
-                    <View style={styles.tagsRow}>
-                        {product.tags.map((tag, index) => (
-                            <View key={index} style={[styles.tagBadge, { backgroundColor: theme.border }]}>
-                                <Text style={[styles.tagText, { color: theme.text }]}>{tag}</Text>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 10 }}>
+                    {/* אזור התגיות (בודקים אם יש תגיות והיערות למנה ומציגים אותן) */}
+                    <View style={{ flex: 1 }}>
+                        {product.tags && product.tags.length > 0 && (
+                            <View style={styles.tagsRow}>
+                                {product.tags.map((tag, index) => (
+                                    <View key={index} style={[styles.tagBadge, { backgroundColor: theme.border }]}>
+                                        <Text style={[styles.tagText, { color: theme.text }]}>
+                                            {typeof tag === 'object' ? (tag[language] || tag.he) : tag}
+                                        </Text>
+                                    </View>
+                                ))}
                             </View>
-                        ))}
+                        )}
                     </View>
-                )}
+
+                    <TouchableOpacity style={{ backgroundColor: theme.primary, width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center', marginLeft: 10 }} onPress={() => onAddPress && onAddPress(product)} >
+                        <Text style={{ color: '#fff', fontSize: 24, fontWeight: 'bold', marginTop: -2 }}>+</Text>
+                    </TouchableOpacity>
+
+                </View>
 
             </View>
         </TouchableOpacity>
@@ -56,7 +67,7 @@ const styles = StyleSheet.create({
     },
     image: {
         width: '100%',
-        height: 200,
+        height: 220,
     },
     infoContainer: {
         padding: 15,

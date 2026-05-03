@@ -15,8 +15,9 @@ const LoginScreen = () => {
         }
     }, [user]);
 
-    const { theme , t } = useContext(ThemeContext);
+    const { theme , t , language} = useContext(ThemeContext);
     const { login, loading, error: serverError } = useContext(AuthContext);
+    const textAlign = language === 'he' ? 'right' : 'left'; // התאמת יישור הטקסט לפי כיוון השפה
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -61,15 +62,15 @@ const LoginScreen = () => {
     return (
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={[styles.container, { backgroundColor: theme.background }]}>
             <Header title="Login" />
-            <View style={styles.contentWrapper}>
+            <View style={styles.contentWrapper }>
                 <View style={styles.card}>
-                    <Text style={[styles.title, { color: theme.text }]}>{t('login_title')}</Text>
+                    <Text style={[styles.title, { color: theme.text , textAlign: textAlign}]}>{t('login_title')}</Text>
                     
                     {/* שדה אימייל */}
                     <View style={styles.inputGroup}>
-                        <Text style={[styles.label, { color: theme.text }]}>{t('email_label')}</Text>
+                        <Text style={[styles.label, { color: theme.text , textAlign: textAlign}]}>{t('email_label')}</Text>
                         <TextInput 
-                            style={[styles.input, { color: theme.text, borderColor: emailError ? 'red' : theme.border, backgroundColor: theme.card }]}
+                            style={[styles.input, { color: theme.text , textAlign: textAlign , borderColor: emailError ? 'red' : theme.border, backgroundColor: theme.card }]}
                             placeholder={t('email_placeholder')}
                             placeholderTextColor="#666"
                             value={email}
@@ -82,9 +83,9 @@ const LoginScreen = () => {
 
                     {/* שדה סיסמה */}
                     <View style={styles.inputGroup}>
-                        <Text style={[styles.label, { color: theme.text }]}>{t('password_label')}</Text>
+                        <Text style={[styles.label, { color: theme.text , textAlign: textAlign}]}>{t('password_label')}</Text>
                         <TextInput 
-                            style={[styles.input, { color: theme.text, borderColor: passwordError ? 'red' : theme.border, backgroundColor: theme.card }]}
+                            style={[styles.input, { color: theme.text , textAlign: textAlign , borderColor: passwordError ? 'red' : theme.border, backgroundColor: theme.card }]}
                             placeholder={t('password_placeholder')}
                             placeholderTextColor="#666"
                             secureTextEntry
@@ -96,17 +97,17 @@ const LoginScreen = () => {
                         {passwordError ? <Text style={styles.fieldError}>{passwordError}</Text> : null}
                     </View>
 
-                    {serverError && <Text style={styles.serverErrorText}>{serverError}</Text>}
+                    {serverError && <Text style={styles.serverErrorText}>{t(serverError)}</Text>}
 
                     <TouchableOpacity style={[styles.loginButton, { backgroundColor: theme.primary }]} onPress={handleSubmit} disabled={loading}>
                         <Text style={styles.buttonText}>{loading ? t('checking') : t('login_btn')}</Text>
                     </TouchableOpacity>
 
                     <View style={styles.footer}>
-                        <Text style={{ color: theme.text, opacity: 0.7 }}>{t('no_account')}</Text>
+                        <Text style={[styles.footerText, { color: theme.text, opacity: 0.7, textAlign: textAlign }]}>{t('no_account')}</Text>
                                                                                                     {/* מעבר למסך הרגיסטר עם העברת האימייל והסיסמה שהוקלדו ללוגאין למילוי אוטומטי ברגיסטר */}
                         <TouchableOpacity  onPress={() => navigation.navigate('(screens)/register' ,{initialEmail : email , initialPassword : password})}> 
-                            <Text style={{ color: theme.primary, fontWeight: 'bold' }}>{t('register_link')}</Text>
+                            <Text style={[styles.footerText, { color: theme.primary, fontWeight: 'bold' , textAlign: textAlign}]}>{t('register_link')}</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -118,16 +119,16 @@ const LoginScreen = () => {
 const styles = StyleSheet.create({
     container: { flex: 1},
     contentWrapper: { flex: 1, justifyContent: 'center', alignItems: 'center', width: '100%' },
-    card: { width: '90%', maxWidth: 400, padding: 20 },
+    card: { width: '90%', maxWidth: 400, padding: 20 , alignItems: 'stretch'},
     title: { fontSize: 32, fontWeight: 'bold', marginBottom: 30, textAlign: 'center' },
-    inputGroup: { marginBottom: 15 },
-    label: { fontSize: 14, marginBottom: 8, fontWeight: '600' },
+    inputGroup: { marginBottom: 15 , width: '100%'},
+    label: { fontSize: 14, marginBottom: 8, fontWeight: '600' ,width: '100%'},
     input: { height: 55, borderWidth: 1, borderRadius: 12, paddingHorizontal: 15 },
     fieldError: { color: 'red', fontSize: 12, marginTop: 5, marginLeft: 5 },
     serverErrorText: { color: '#ff4d4d', textAlign: 'center', marginBottom: 15, fontWeight: 'bold' },
     loginButton: { height: 55, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginTop: 10 },
     buttonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
-    footer: { flexDirection: 'row', justifyContent: 'center', marginTop: 25 }
+    footer: { width: '100%', justifyContent: 'center', marginTop: 25 }
 });
 
 export default LoginScreen;

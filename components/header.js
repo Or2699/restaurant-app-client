@@ -2,10 +2,11 @@ import React from "react";
 import { ThemeContext } from "../context/ThemeContext.js";
 import { AuthContext } from "../context/AuthContext.js";
 import { useContext } from "react";
-import {View , Text , StyleSheet , TouchableOpacity , SafeAreaView} from 'react-native';
+import {View , Text , StyleSheet , TouchableOpacity , SafeAreaView , Image} from 'react-native';
 import { SIZES } from "../constants/sizes.js";
 import { Sun, Moon, Languages , LogOut } from 'lucide-react-native'; // ספריה לאייקונים
 import { useNavigation } from 'expo-router';
+
 
 const Header = ({ title }) => {
     const {theme , isDarkMode , toggleTheme , language , toggleLanguage , t} = useContext(ThemeContext);
@@ -20,8 +21,13 @@ const Header = ({ title }) => {
     return(
         <SafeAreaView style={{ backgroundColor: theme.primary , width: '100%'}}>
             <View style={[styles.container , {backgroundColor: theme.primary}]}>
-                                             {/* פונקציית המרה */ }
-                <Text style = {styles.logoText}>{ t('welcome') }</Text> 
+                
+
+                <View style = {{ flexDirection : 'row' , alignItems : 'center' }} >
+                    <Image source = { require('../assets/res_logo2.png')} style={styles.logoImage}/>
+                                                 {/* פונקציית המרה */ }
+                    <Text style = {styles.logoText}>{ t('welcome') }</Text> 
+                </View>
 
                 <View style={styles.rightIcons}>
                     <TouchableOpacity style={styles.iconBtn} onPress={toggleLanguage}>
@@ -71,7 +77,20 @@ const styles = StyleSheet.create({
     iconBtn: {
         marginLeft: 15,
         padding: 5,
-    }
+    },
+    logoImage: {
+        width: 65, 
+        height: 65,
+        borderRadius: 32.5, 
+        borderWidth: 2,
+        borderColor: '#fff', 
+        marginRight: 10,
+        elevation: 3,
+        shadowColor: '#000', 
+        shadowOpacity: 0.1,
+        shadowRadius: 5,
+        shadowOffset: { width: 0, height: 2 },
+    },
 });
 
 export default Header;

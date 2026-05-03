@@ -22,11 +22,12 @@ const RegisterScreen = () => {
         }
     } , [])
 
-    const { theme , t } = useContext(ThemeContext);
+    const { theme , t , language } = useContext(ThemeContext);
     const { API_URL } = useContext(ServerContext);
     const router = useRouter();
     const navigation = useNavigation();
     const [loading, setLoading] = useState(false);
+    const textAlign = language === 'he' ? 'right' : 'left';
 
     const [form , setForm] = useState({
         fullName: '',
@@ -40,7 +41,8 @@ const RegisterScreen = () => {
     const styles = StyleSheet.create({
             container: { flex: 1,  alignItems: 'center', backgroundColor: theme.background },
             scroll: { width: '100%'},
-            innerContainer: {  width: '100%', maxWidth: 450, alignSelf: 'center', padding: 30},
+            scrollContent: { flexGrow: 1, justifyContent: 'center',  alignItems: 'center' },
+            innerContainer: {  width: '100%', maxWidth: 450, alignSelf: 'center', padding: 30 , alignItems: 'stretch'},
             title: { fontSize: 28, fontWeight: 'bold', marginBottom: 30, textAlign: 'center' },
             input: { height: 50, borderWidth: 1, borderRadius: 10, paddingHorizontal: 15, marginBottom: 15 },
             btn: { height: 50, borderRadius: 10, justifyContent: 'center', alignItems: 'center', marginTop: 10 },
@@ -75,7 +77,7 @@ const RegisterScreen = () => {
 
             const response = await axios.post(`${API_URL}/auth/register`, form);
             if( response.status === 201 ){
-                alert("Registration successful! Please log in.");
+                alert(t(response.data.messageKey));
                 navigation.goBack(); // חזרה למסך הלוגין אחרי רישום מוצלח
             }
 
@@ -95,31 +97,31 @@ const RegisterScreen = () => {
     return (
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={[styles.container, { backgroundColor: theme.background }]}>
             <Header title="Register"/>
-            <ScrollView style={styles.scroll} contentContainerStyle={{ flexGrow: 1 }}>
+           <ScrollView style={styles.scroll } contentContainerStyle={styles.scrollContent}>
                 <View style={styles.innerContainer}>
-                    <Text style={[styles.title, { color: theme.text }]}>{t('register_title')}</Text>
+                    <Text style={[styles.title, { color: theme.text , textAlign: textAlign}]}>{t('register_title')}</Text>
 
-                    <TextInput style={[styles.input, { color: theme.text, borderColor: theme.border }]} placeholder= {t('full_name')} placeholderTextColor="#666" onChangeText={(val) => setForm({ ...form, fullName: val })} autoComplete="name" textContentType="name" />
-                    <TextInput style={[styles.input, { color: theme.text, borderColor: theme.border }]} placeholder={t('email_label')} placeholderTextColor="#666" keyboardType="email-address" autoCapitalize="none" onChangeText={(val) => setForm({ ...form, email: val })} autoComplete="email" textContentType="emailAddress" value={form.email} />
-                    <TextInput style={[styles.input, { color: theme.text, borderColor: theme.border }]} placeholder={t('phone_label')} placeholderTextColor="#666" keyboardType="phone-pad" onChangeText={(val) => setForm({ ...form, phone: val })} autoComplete="tel" textContentType="telephoneNumber" />
-                    <TextInput style={[styles.input, { color: theme.text, borderColor: theme.border }]} placeholder={t('password_placeholder')} placeholderTextColor="#666" secureTextEntry onChangeText={(val) => setForm({ ...form, password: val })} autoComplete="new-password" textContentType="password"  value={form.password} />
+                    <TextInput style={[styles.input, { color: theme.text, borderColor: theme.border , textAlign: textAlign}]} placeholder= {t('full_name')} placeholderTextColor="#666" onChangeText={(val) => setForm({ ...form, fullName: val })} autoComplete="name" textContentType="name" />
+                    <TextInput style={[styles.input, { color: theme.text, borderColor: theme.border , textAlign: textAlign}]} placeholder={t('email_label')} placeholderTextColor="#666" keyboardType="email-address" autoCapitalize="none" onChangeText={(val) => setForm({ ...form, email: val })} autoComplete="email" textContentType="emailAddress" value={form.email} />
+                    <TextInput style={[styles.input, { color: theme.text, borderColor: theme.border , textAlign: textAlign}]} placeholder={t('phone_label')} placeholderTextColor="#666" keyboardType="phone-pad" onChangeText={(val) => setForm({ ...form, phone: val })} autoComplete="tel" textContentType="telephoneNumber" />
+                    <TextInput style={[styles.input, { color: theme.text, borderColor: theme.border , textAlign: textAlign}]} placeholder={t('password_placeholder')} placeholderTextColor="#666" secureTextEntry onChangeText={(val) => setForm({ ...form, password: val })} autoComplete="new-password" textContentType="password"  value={form.password} />
 
-                    <Text style={{ color: theme.text, marginBottom: 5 }}>{t('role_label')}</Text>
+                    <Text style={{ color: theme.text, marginBottom: 5 , textAlign: textAlign}}>{t('role_label')}</Text>
                     <View style={styles.roleContainer}>
                         {['customer', 'waiter', 'admin'].map((r) => (
                             <TouchableOpacity key={r} style={[styles.roleOption, form.role === r && { backgroundColor: theme.primary }]} onPress={() => setForm({ ...form, role: r })}>
-                                <Text style={{ color: form.role === r ? '#fff' : theme.text }}>{t(r)}</Text>
+                                <Text style={{ color: form.role === r ? '#fff' : theme.text , textAlign: textAlign}}>{t(r)}</Text>
                             </TouchableOpacity>
                         ))}
                     </View>
 
                     <TouchableOpacity style={[styles.btn, { backgroundColor: theme.primary }]} onPress={handleRegister} disabled={loading}>
-                        <Text style={styles.buttonText}>{loading ? t('processing') : t('register_btn')}</Text>
+                        <Text style={styles.buttonText }>{loading ? t('processing') : t('register_btn')}</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity onPress={() => navigation.navigate('(screens)/index')} style={styles.footer}>
-                        <Text style={{ color: theme.text }} >{t('has_account')}</Text>
-                        <Text style={{ color: theme.primary, fontWeight: 'bold' }}>{t('login_link')}</Text>
+                        <Text style={{ color: theme.text , textAlign: textAlign}} >{t('has_account')}</Text>
+                        <Text style={{ color: theme.primary, fontWeight: 'bold' , textAlign: textAlign}}>{t('login_link')}</Text>
                     </TouchableOpacity>
                 </View>
                
