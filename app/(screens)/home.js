@@ -1,5 +1,5 @@
 import React, { useContext , useEffect , useState , useRef } from "react";
-import { View, Text, StyleSheet, ScrollView , Animated, Easing, Dimensions, FlatList , TouchableOpacity , Alert } from "react-native";
+import { View, Text, StyleSheet, ScrollView , Animated, Easing, Dimensions, FlatList , TouchableOpacity , Alert , TextInput} from "react-native";
 import { ThemeContext } from "../../context/ThemeContext";
 import { AuthContext } from "../../context/AuthContext";
 import { ServerContext } from "../../context/ServerContext";
@@ -12,17 +12,23 @@ import AddToCartModal from "../../components/AddToCartModal";
 
 
 const HomeScreen = () => {
-    const {user} = useContext(AuthContext);
+    const {user , token} = useContext(AuthContext);
     const { cart } = useContext(CartContext);
     const { theme , t , language} = useContext(ThemeContext);
     const navigation = useNavigation();
-    const { getProducts , getActiveStaff, toggleShift , getActiveOrders } = useContext(ServerContext);
+    const { getProducts , getActiveStaff, toggleShift , getActiveOrders , updateOrderStatus , updateAnnouncement , getAnnouncement } = useContext(ServerContext);
     const [recommendedDishes, setRecommendedDishes] = useState([]);
     const [dailyUpdates, setDailyUpdates] = useState("");
     const [selectedDish, setSelectedDish] = useState(null);
     const [isModalVisible, setModalVisible] = useState(false);
     const [activeStaff, setActiveStaff] = useState([]); // רק למנהלים - רשימת עובדים במשמרת הנוכחית 
     const [activeOrders, setActiveOrders] = useState([]);
+    const [selectedAdminOrder, setSelectedAdminOrder] = useState(null);
+    const [announcement, setAnnouncement] = useState({ he: "", en: "" }); // ההודעה שרצה כרגע
+    const [inputHe, setInputHe] = useState(""); // קלט לעברית
+    const [inputEn, setInputEn] = useState(""); // קלט לאנגלית
+    const [isUpdateModalVisible, setUpdateModalVisible] = useState(false);
+    const [selectedStaffMember, setSelectedStaffMember] = useState(null); // עובד שנבחר למעבר לפרופיל שלו (רק למנהלים)
     const { width } = Dimensions.get('window'); // רוחב המסך לשימוש באנימציות
     const marqueeAnim = useRef(new Animated.Value(width)).current;
    
@@ -60,6 +66,7 @@ const HomeScreen = () => {
         loadRecommendations();
     } , [user]);
 
+
     // טעינת עובדים רק אם המשתמש הוא אדמין
     useEffect(() => {
         if( user && user.role === 'admin') {
@@ -74,16 +81,72 @@ const HomeScreen = () => {
     } , [user]);
 
 
+    //טעינת הנתונים להודעה של הבאנר
+    useEffect(() => {
+        const loadAnnouncement = async () => {
+            const data = await getAnnouncement();
+            setAnnouncement(data);
+            setInputHe(data.he);
+            setInputEn(data.en);
+        };
+        loadAnnouncement();
+    } , []);
+
+
+    // ברגע שרשימת העובדים מתעדכנת (למשל אחרי סגירת שולחן), מעדכנים גם את הכרטיס הפתוח
+    useEffect(() => {
+        if (selectedStaffMember && activeStaff) {
+            const updatedMe = activeStaff.find(staff => staff._id === selectedStaffMember._id);
+            if (updatedMe) {
+                setSelectedStaffMember(updatedMe);
+            }
+        }
+    }, [activeStaff]);
+
+
 
     // מכין את רשימת המנות כטקסט
     const showOrderDetails = (order) => {
         console.log("Order pressed:", order);
-        const itemsList = order.items.map(item => `${item.product?.name?.[language] || t('dish')} x${item.quantity}`).join('\n');        Alert.alert(
-            `${t('table')} ${order.tableNumber}`,
-            `${t('waiter')}: ${order.user?.fullName || t('unknown')}\n\n${t('items')}:\n${itemsList}`, //המלצר ששלח את ההזמנה הוא זה שמטפל בשולחן  
-            [{ text: t('close') }]
-        );
+        const itemsList = order.items.map(item => `${item.product?.name?.[language] || t('dish')} x${item.quantity}`).join('\n');        
+        setSelectedAdminOrder(order); // פותח את המודל של המנהל 
+        // Alert.alert(
+        //     `${t('table')} ${order.tableNumber}`,
+        //     `${t('waiter')}: ${order.user?.fullName || t('unknown')}\n\n${t('items')}:\n${itemsList}`, //המלצר ששלח את ההזמנה הוא זה שמטפל בשולחן  
+        //     [
+        //         { text: t('close'), style: 'cancel' },
+        //         { text: t('mark_as_served'), onPress: async () => { const res = await updateOrderStatus(order._id, 'served', token); if (res.success) setActiveOrders(res.data);}},
+        //         { text: t('close_order'), onPress: async () => { const res = await updateOrderStatus(order._id, 'paid', token); if (res.success) setActiveOrders(res.data);}, style: 'destructive'}
+        //     ]
+        // );
     };
+
+
+    // פונקציית עזר לצביעת ההזמנות של השולחנות לפי הסטטוס שלהן 
+    const getStatusColor = (status) => {
+        switch (status) {
+            case 'preparing': return '#4A90E2'; // כחול - בהכנה
+            case 'served': return '#2ECC71'; // ירוק - הוגש לשולחן
+            default: return theme.primary;
+        }
+    };
+
+
+    // פונקציית עזר לחישוב שכר וזמן עבור עובד
+    const calculateShiftStats = (startTime, wage, tablesCount) => {
+        if (!startTime) return { hours: "0.00", earned: "0.00", bonus: "0" };
+    
+        const start = new Date(startTime);
+        const now = new Date();
+        const hours = (now - start) / (1000 * 60 * 60);
+        let bonus = 0;
+
+        if (hours >= 10) bonus += 50; 
+        if (tablesCount >= 10) bonus += 30; 
+
+        return { hours: hours.toFixed(2) , earned: ((hours * wage) + bonus).toFixed(2) , bonus: bonus };
+    };
+
 
     if (!user) return null;
     const textAlign = language === "he" ? "right" : "left";
@@ -181,13 +244,15 @@ const HomeScreen = () => {
                             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 20 }}>
                                 {activeStaff && activeStaff.length > 0 ? (
                                     activeStaff.map((staff) => (
-                                        <View key={staff._id} style={{ alignItems: 'center', marginRight: 15 }}>
-                                            <View style={{ width: 60, height: 60, borderRadius: 30, backgroundColor: theme.primary, justifyContent: 'center', alignItems: 'center', marginBottom: 5 }}>
-                                                <Text style={{ color: '#fff', fontWeight: 'bold' }}> {staff.fullName.substring(0, 1)}{staff.fullName.split(' ')[1]?.substring(0, 1) || ''} </Text>
+                                        <TouchableOpacity key={staff._id} style={{ alignItems: 'center', marginRight: 15 }} onPress={() => setSelectedStaffMember(staff)}>
+                                             <View key={staff._id} style={{ alignItems: 'center', marginRight: 15 }}>
+                                                <View style={{ width: 60, height: 60, borderRadius: 30, backgroundColor: theme.primary, justifyContent: 'center', alignItems: 'center', marginBottom: 5 }}>
+                                                    <Text style={{ color: '#fff', fontWeight: 'bold' }}> {staff.fullName.substring(0, 1)}{staff.fullName.split(' ')[1]?.substring(0, 1) || ''} </Text>
+                                                </View>
+                                                <Text style={{ color: theme.text, fontSize: 12, fontWeight: '500' }}>{staff.fullName.split(' ')[0]}</Text>
+                                                <Text style={{ color: theme.text, fontSize: 10, opacity: 0.6 }}>{staff.hourlyWage}₪/h</Text>
                                             </View>
-                                            <Text style={{ color: theme.text, fontSize: 12, fontWeight: '500' }}>{staff.fullName.split(' ')[0]}</Text>
-                                            <Text style={{ color: theme.text, fontSize: 10, opacity: 0.6 }}>{staff.hourlyWage}₪/h</Text>
-                                        </View>
+                                        </TouchableOpacity>
                                     ))
                                 ) : (
                                     /* מה יופיע כשאין אף אחד במשמרת */
@@ -200,7 +265,7 @@ const HomeScreen = () => {
                             {activeOrders && activeOrders.length > 0 ? (
                                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
                                     {activeOrders.map((order) => (
-                                        <TouchableOpacity key={order._id} style={{ width: '48%', backgroundColor: theme.card, padding: 15, borderRadius: 15, marginBottom: 10, borderRightWidth: 4, borderRightColor: theme.primary, elevation: 2 }} onPress={() => showOrderDetails(order)}>
+                                        <TouchableOpacity key={order._id} style={{ width: '48%', backgroundColor: theme.card, padding: 15, borderRadius: 15, marginBottom: 10, borderRightWidth: 5, borderRightColor: getStatusColor(order.status), elevation: 2 }} onPress={() => showOrderDetails(order)}>
                                             <Text style={{ fontWeight: 'bold', color: theme.text, fontSize: 16 }}> {t('table')} {order.tableNumber}</Text>
                                             <Text style={{ fontSize: 12, color: theme.text, opacity: 0.7 }}>{order.items.length} {t('items')}</Text>
                                             <View style={{ marginTop: 8, backgroundColor: theme.primary + '20', padding: 4, borderRadius: 5, alignSelf: language === 'he' ? 'flex-end' : 'flex-start' }}>
@@ -214,6 +279,8 @@ const HomeScreen = () => {
                                     <Text style={{ color: theme.text, opacity: 0.6 }}>{t('no_active_tables_yet')}</Text>
                                 </View>
                                 )}
+
+
                             </View>
                     ) : null }
                 </View>
@@ -221,11 +288,144 @@ const HomeScreen = () => {
             </ScrollView>
 
             {/* באנר רץ (Marquee) בתחתית המסך - מושך נתונים מהמנהל */}
-            <View style={{ height: 45, backgroundColor: theme.primary, justifyContent: 'center' }}>
-                <Animated.Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16, transform: [{ translateX: marqueeAnim }] }}>{dailyUpdates || t('updates_title')}  </Animated.Text>
-            </View>
+            <TouchableOpacity activeOpacity={user.role === 'admin' ? 0.7 : 1} onPress={() => user.role === 'admin' && setUpdateModalVisible(true)} style={{ height: 45, backgroundColor: theme.primary, justifyContent: 'center', overflow: 'hidden' }}>
+                <Animated.Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16, transform: [{ translateX: marqueeAnim }] }}> {announcement[language] || t('updates_title')}  {user.role === 'admin' } </Animated.Text>
+            </TouchableOpacity>
+
+
+
+            {selectedAdminOrder && (
+                <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }]}>
+                    <View style={{ backgroundColor: theme.card, width: '85%', padding: 20, borderRadius: 20, elevation: 10, shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 5 }}>
+                        <Text style={{ fontSize: 22, fontWeight: 'bold', color: theme.text, textAlign: textAlign, marginBottom: 10 }}> {t('table')} {selectedAdminOrder.tableNumber} </Text>
+                        <Text style={{ fontSize: 16, color: theme.text, opacity: 0.8, textAlign: textAlign, marginBottom: 15 }}>{t('waiter_label')}: {selectedAdminOrder.user?.fullName || t('unknown')}</Text>
+                        <View style={{ backgroundColor: theme.background, padding: 15, borderRadius: 10, marginBottom: 20 }}>
+                            <Text style={{ fontWeight: 'bold', color: theme.text, textAlign: textAlign, marginBottom: 10 }}>{t('items')}:</Text>
+                            {selectedAdminOrder.items.map((item, index) => (
+                                <View key={index} style={{ marginBottom: 8 }}>
+                                    <Text style={{ color: theme.text, textAlign: textAlign, fontWeight: '500' }}> • {item.product?.name?.[language] || t('dish')} x{item.quantity}</Text>
+                                    {item.notes ? (
+                                        <Text style={{ color: '#E63946', opacity: 0.8, fontSize: 12, textAlign: textAlign, paddingHorizontal: 15}}> * {t('note')}: {item.notes}</Text>
+                                    ) : null}
+                                </View>
+                            ))}
+                        </View>
+
+                        {/* כפתורי פעולה */}
+                        <View style={{ flexDirection: language === 'he' ? 'row-reverse' : 'row', justifyContent: 'space-between', marginTop: 10 }}>
+                            
+                            <TouchableOpacity style={{ padding: 12, backgroundColor: theme.border, borderRadius: 10, width: '30%', alignItems: 'center' }} onPress={() => setSelectedAdminOrder(null)}>
+                                <Text style={{ color: theme.text, fontWeight: 'bold' }}>{t('close')}</Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity style={{ padding: 12, backgroundColor: theme.primary + '80', borderRadius: 10, width: '30%', alignItems: 'center' }}
+                                onPress={async () => {
+                                    const res = await updateOrderStatus(selectedAdminOrder._id, 'served', token);
+                                    if (res.success){
+                                        setActiveOrders(res.data);
+                                        const updatedStaff = await getActiveStaff();
+                                        setActiveStaff(updatedStaff);
+                                    }
+                                     
+                                    setSelectedAdminOrder(null);
+                                }}>
+                                <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 12, textAlign: 'center' }}>{t('mark_as_served')}</Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity style={{ padding: 12, backgroundColor: '#E63946', borderRadius: 10, width: '30%', alignItems: 'center' }}
+                                onPress={async () => {
+                                    const res = await updateOrderStatus(selectedAdminOrder._id, 'paid', token);
+                                    if (res.success) {
+                                        const updatedOrders = await getActiveOrders();
+                                        setActiveOrders(updatedOrders);
+                                        const updatedStaff = await getActiveStaff(); // מושכים מחדש את פרטי העובדים 
+                                        console.log("עובדים מהשרת:", updatedStaff.map(s => s.fullName + " : " + s.currentShiftTables));
+                                        setActiveStaff(updatedStaff);
+                                    }
+                                    setSelectedAdminOrder(null);
+                                }}>
+                                <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 12, textAlign: 'center' }}>{t('close_order')}</Text>
+                            </TouchableOpacity>
+
+                        </View>
+                    </View>
+                </View>
+            )}
 
             <AddToCartModal visible={isModalVisible} dish={selectedDish}  onClose={() => setModalVisible(false)}  onAddToCart={(orderData) => { console.log("הזמנה חדשה התקבלה במערכת:", orderData); setModalVisible(false);}}  />
+        
+            {/* מודל עדכון הודעה למנהלת */}
+            {isUpdateModalVisible && (
+                <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'center', alignItems: 'center', zIndex: 3000 }]}>
+                    <View style={{ backgroundColor: theme.card, width: '90%', padding: 25, borderRadius: 25 }}>
+                        <Text style={{ fontSize: 20, fontWeight: 'bold', color: theme.text, textAlign: 'center', marginBottom: 20 }}>{t('update_marquee')} </Text>
+                        <Text style={{ color: theme.text, opacity: 0.6, marginBottom: 5, textAlign: 'right' }}>עברית:</Text>
+                        <TextInput style={{ backgroundColor: theme.background, color: theme.text, padding: 12, borderRadius: 10, textAlign: 'right', marginBottom: 15, borderWidth: 1, borderColor: theme.border }}value={inputHe} onChangeText={setInputHe} multiline/>
+                        <Text style={{ color: theme.text, opacity: 0.6, marginBottom: 5, textAlign: 'left' }}>English:</Text>
+                        <TextInput style={{ backgroundColor: theme.background, color: theme.text, padding: 12, borderRadius: 10, textAlign: 'left', marginBottom: 20, borderWidth: 1, borderColor: theme.border }} value={inputEn} onChangeText={setInputEn} multiline />
+
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                            <TouchableOpacity style={{ padding: 15, backgroundColor: theme.border, borderRadius: 12, width: '45%', alignItems: 'center' }} onPress={() => setUpdateModalVisible(false)}>
+                                <Text style={{ color: theme.text, fontWeight: 'bold' }}>{t('close')}</Text>
+                            </TouchableOpacity>
+                            
+                            <TouchableOpacity style={{ padding: 15, backgroundColor: theme.primary, borderRadius: 12, width: '45%', alignItems: 'center' }}
+                                onPress={async () => {
+                                    const res = await updateAnnouncement({ announcement_he: inputHe, announcement_en: inputEn }, token);
+                                    if(res.success) {
+                                        setAnnouncement(res.data);
+                                        setUpdateModalVisible(false);
+                                        Alert.alert(t('success'), t('announcement_updated'));
+                                    }
+                                }}
+                            >
+                                <Text style={{ color: '#fff', fontWeight: 'bold' }}>{t('update_now')}</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            )}
+
+
+
+            {/* מיני קומפוננטה לייצוג של עובד */}
+            {selectedStaffMember && (
+                <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'center', alignItems: 'center', zIndex: 2500 }]}>
+                    <View style={{ backgroundColor: theme.card, width: '85%', padding: 25, borderRadius: 25, elevation: 10 }}>
+                        <Text style={{ fontSize: 24, fontWeight: 'bold', color: theme.text, textAlign: 'center', marginBottom: 5 }}> {selectedStaffMember.fullName} </Text>
+                        <Text style={{ fontSize: 16, color: theme.primary, fontWeight: '600', textAlign: 'center', marginBottom: 20 }}> {t(selectedStaffMember.role)} </Text>
+
+                        <View style={{ width: '100%', backgroundColor: theme.background, padding: 15, borderRadius: 15, marginBottom: 20 }}>
+                            <View style={{ flexDirection: language === 'he' ? 'row-reverse' : 'row', justifyContent: 'space-between', marginBottom: 12 }}>
+                                <Text style={{ color: theme.text, opacity: 0.8 }}>{t('shift_time')}:</Text>
+                                <Text style={{ color: theme.text, fontWeight: 'bold' }}> {calculateShiftStats(selectedStaffMember.lastShiftStart, selectedStaffMember.hourlyWage, selectedStaffMember.currentShiftTables).hours} {t('hours')} </Text>
+                            </View>
+
+                            <View style={{ flexDirection: language === 'he' ? 'row-reverse' : 'row', justifyContent: 'space-between', marginBottom: 12 }}>
+                                <Text style={{ color: theme.text, opacity: 0.8 }}>{t('tables_served')}:</Text>
+                                <Text style={{ color: theme.text, fontWeight: 'bold' }}> {selectedStaffMember.currentShiftTables || 0} </Text>
+                            </View>
+
+                            <View style={{ flexDirection: language === 'he' ? 'row-reverse' : 'row', justifyContent: 'space-between', marginBottom: 12 }}>
+                                <Text style={{ color: theme.text, opacity: 0.8 }}>{t('bonuses_earned')}:</Text>
+                                <Text style={{ color: '#F1C40F', fontWeight: 'bold' }}> ₪{calculateShiftStats(selectedStaffMember.lastShiftStart, selectedStaffMember.hourlyWage, selectedStaffMember.currentShiftTables).bonus} </Text>
+                            </View>
+
+                            {/* שכר נוכחי */}
+                            <View style={{ flexDirection: language === 'he' ? 'row-reverse' : 'row', justifyContent: 'space-between', borderTopWidth: 1, borderTopColor: theme.border, paddingTop: 12, marginTop: 5 }}>
+                                <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: 16 }}>{t('current_salary')}:</Text>
+                                <Text style={{ color: '#2ECC71', fontWeight: 'bold', fontSize: 20 }}> ₪{calculateShiftStats(selectedStaffMember.lastShiftStart, selectedStaffMember.hourlyWage, selectedStaffMember.currentShiftTables).earned}</Text>
+                            </View>
+                        </View>
+
+                        <TouchableOpacity style={{ backgroundColor: theme.primary, paddingVertical: 14, borderRadius: 15, width: '100%' }} onPress={() => setSelectedStaffMember(null)}>
+                            <Text style={{ color: '#fff', textAlign: 'center', fontWeight: 'bold', fontSize: 16 }}> {t('close')} </Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            )}
+
+            
         </View>
     );
 };

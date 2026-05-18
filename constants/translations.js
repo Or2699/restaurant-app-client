@@ -71,11 +71,56 @@ export const translations = {
         served: "Served",
         paid: "Paid",
         cancelled: "Cancelled",
+        mark_as_served: "Mark as Served" ,
+        close_order: "Close Order (Paid)",
+        waiter_label: "Assigned Waiter",
+        note: "Note",
+        update_marquee: "Update Banner",
+        placeholder_he: "Hebrew message...",
+        placeholder_en: "English message...",
+        update_btn: "Update Now",
+        close: "close",
+        shift_time: "Shift Time",
+        tables_served: "Tables Served",
+        bonuses_earned: "Bonuses Earned",
+        current_salary: "Current Salary",
+        waiter: "Assigned Waiter",
+        close: "Close",
+        unknown: "Unknown",
+        dish: "Dish",
+        order_info: "Order Info",
+
 
         //Add to cart modal
         kitchen_notes: "Kitchen Notes:",
         kitchen_notes_placeholder: "e.g., No onions, sauce on the side...",
-        add_to_order: "Add to Order -"
+        add_to_order: "Add to Order -",
+
+
+         // manageUsersScreen
+        staff_and_wages: "Staff & Wages 💰",
+        waiting_for_approval: "Pending Approval ⏳",
+        no_pending_users: "No pending approval requests",
+        approve_employee: "Approve Employee",
+        approve_title: "Approve Employee",
+        reject_title: "Reject Employee",
+        approve_question: "Are you sure you want to approve",
+        reject_question: "Are you sure you want to reject and delete",
+        confirm: "Confirm",
+        wages_placeholder_msg: "Monthly wages and staff list will be displayed here!",
+        cancel: "Cancel",
+        error: "Error",
+        hourly_wage_label: "Hourly Wage:",
+        monthly_earnings_label: "Monthly Earnings",
+        update_wage_title: "Update Hourly Wage",
+        for_employee: "For employee:",
+        invalid_wage_error: "Please enter a valid number",
+        no_active_staff: "No approved staff members in the system",
+        invalid_number: "Please enter a valid number",
+        give_bonus_title: "Give Bonus",
+        bonus_amount_placeholder: "Bonus amount...",
+        payout_success: "Payment successful, all data has been reset!",
+        pay_all_btn: "💰 Pay All & Close Month"
 
        
     } ,
@@ -107,9 +152,9 @@ export const translations = {
         switch : "English",
 
         // Roles
-        customer: "לקוח",
-        waiter: "מלצר / עובד",
-        admin: "מנהל",
+        customer: "לקוח/ה",
+        waiter: "מלצר/ית / עובד/ת",
+        admin: "מנהל/ת",
 
         // home page 
         home_title: "מסך הבית",
@@ -151,22 +196,57 @@ export const translations = {
         served: "הוגש",
         paid: "שולם",
         cancelled: "בוטל",
-        waiter: "מלצר מטפל",
+        waiter: "מלצר/ית מטפל/ת",
         close: "סגור",
         unknown: "לא ידוע",
         dish: "מנה",
         order_info: "פרטי הזמנה",
-        waiter: "Assigned Waiter",
-        close: "Close",
-        unknown: "Unknown",
-        dish: "Dish",
-        order_info: "Order Info",
+        mark_as_served: "סמן כהוגש",
+        close_order: "סגור חשבון (שולם)",
+        waiter_label: "מלצר מטפל",
+        note: "הערה",
+        update_marquee: "עדכון הודעה רצה",
+        placeholder_he: "הודעה בעברית...",
+        placeholder_en: "הודעה באנגלית...",
+        update_btn: "עדכן עכשיו",
+        close: "סגור",
+        shift_time: "זמן במשמרת",
+        tables_served: "שולחנות ששורתו",
+        bonuses_earned: "בונוסים שנצברו",
+        current_salary: "שכר נוכחי",
 
 
         //Add to cart modal
         kitchen_notes: "הערות למטבח:",
         kitchen_notes_placeholder: "לדוגמה: בלי בצל, רטבים בצד...",
-        add_to_order: "הוסף להזמנה -"
+        add_to_order: "הוסף להזמנה -",
+
+         // manageUsersScreen
+        staff_and_wages: "צוות ושכר 💰",
+        waiting_for_approval: "ממתינים לאישור ⏳",
+        no_pending_users: "אין בקשות הצטרפות חדשות כרגע",
+        approve_employee: "אשר עובד",
+        approve_title: "אישור עובד",
+        reject_title: "דחיית עובד",
+        approve_question: "האם את בטוחה שברצונך לאשר את המשתמש",
+        reject_question: "האם את בטוחה שברצונך לדחות ולמחוק את",
+        confirm: "אישור",
+        wages_placeholder_msg: "כאן נציג את רשימת השכר והמשכורות החודשיות!" ,
+        cancel: "ביטול",
+        error: "שגיאה",
+        hourly_wage_label: "שכר שעתי:",
+        monthly_earnings_label: "הכנסה החודש",
+        update_wage_title: "עדכון שכר שעתי",
+        for_employee: "עבור העובד/ת:",
+        invalid_wage_error: "נא להזין מספר תקין",
+        no_active_staff: "אין אנשי צוות מאושרים במערכת",
+        invalid_number: "נא להזין מספר תקין",
+        give_bonus_title: "מתן בונוס",
+        bonus_amount_placeholder: "סכום הבונוס...",
+        payout_success: "התשלום בוצע בהצלחה והנתונים התאפסו!",
+        pay_all_btn: " בצע תשלום לכולם וסגור חודש"
+
+
 
     }
 };
