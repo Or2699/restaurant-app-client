@@ -1,14 +1,15 @@
-import React, { useContext , useEffect , useState , useRef } from "react";
+import React, { useContext , useEffect , useState , useRef , useCallback} from "react";
 import { View, Text, StyleSheet, ScrollView , Animated, Easing, Dimensions, FlatList , TouchableOpacity , Alert , TextInput} from "react-native";
 import { ThemeContext } from "../../context/ThemeContext";
 import { AuthContext } from "../../context/AuthContext";
 import { ServerContext } from "../../context/ServerContext";
 import { CartContext } from "../../context/CartContext";
-import { useNavigation } from "expo-router";
+import { useNavigation  , useFocusEffect } from "expo-router";
 import Header from "../../components/header";
 import DashboardCard from "../../components/DashboardCard";
 import DishCard from "../../components/DishCard";
 import AddToCartModal from "../../components/AddToCartModal";
+import { Ionicons } from '@expo/vector-icons';
 
 
 const HomeScreen = () => {
@@ -16,7 +17,7 @@ const HomeScreen = () => {
     const { cart } = useContext(CartContext);
     const { theme , t , language} = useContext(ThemeContext);
     const navigation = useNavigation();
-    const { getProducts , getActiveStaff, toggleShift , getActiveOrders , updateOrderStatus , updateAnnouncement , getAnnouncement } = useContext(ServerContext);
+    const { getProducts , getActiveStaff, toggleShift , getActiveOrders , updateOrderStatus , updateAnnouncement , getAnnouncement , assignWaiterToOrder } = useContext(ServerContext);
     const [recommendedDishes, setRecommendedDishes] = useState([]);
     const [dailyUpdates, setDailyUpdates] = useState("");
     const [selectedDish, setSelectedDish] = useState(null);
@@ -29,7 +30,10 @@ const HomeScreen = () => {
     const [inputEn, setInputEn] = useState(""); // קלט לאנגלית
     const [isUpdateModalVisible, setUpdateModalVisible] = useState(false);
     const [selectedStaffMember, setSelectedStaffMember] = useState(null); // עובד שנבחר למעבר לפרופיל שלו (רק למנהלים)
-    const { width } = Dimensions.get('window'); // רוחב המסך לשימוש באנימציות
+    const [myStaffData, setMyStaffData] = useState(null); // שמירת הנתונים האישיים של המלצר כשהוא במשמרת    const { width } = Dimensions.get('window'); // רוחב המסך לשימוש באנימציות
+    const [waiterOrders, setWaiterOrders] = useState([]); // שומר את השולחנות של המלצר
+    const [unassignedOrders, setUnassignedOrders] = useState([]); // הזמנות של לקוחות ללא מלצר
+    const { width } = Dimensions.get('window');
     const marqueeAnim = useRef(new Animated.Value(width)).current;
    
 
@@ -67,18 +71,36 @@ const HomeScreen = () => {
     } , [user]);
 
 
-    // טעינת עובדים רק אם המשתמש הוא אדמין
-    useEffect(() => {
-        if( user && user.role === 'admin') {
-            const loadData = async () =>{
-                const staffData = await getActiveStaff();
-                setActiveStaff(staffData);
-                const ordersData = await getActiveOrders(); 
-                setActiveOrders(ordersData);
-            };
-             loadData();
-        }
-    } , [user]);
+    // טעינת עובדים רק אם המשתמש הוא אדמין או השולחנות עבור אותו מלצר 
+    useFocusEffect(
+        useCallback(() => {
+            if (user && user.role === 'admin' && token) {
+                const loadData = async () => {
+                    const staffData = await getActiveStaff(token);
+                    setActiveStaff(staffData);
+                    const ordersData = await getActiveOrders(token); 
+                    setActiveOrders(ordersData);
+                };
+                loadData();
+            }
+            else if (user && user.role === 'waiter' && token) {
+                const loadWaiterData = async () => {
+                    const staffData = await getActiveStaff(token);  // בדיקה אם הוא במשמרת (isOnline)
+                    const me = staffData.find(s => s._id === user.id);
+                    setMyStaffData(me || null); 
+                    const ordersData = await getActiveOrders(token); // משיכת ההזמנות שלו 
+                    const myOrders = ordersData.filter(order => 
+                        // String(order.user?._id) === String(user.id) || 
+                        String(order.assignedWaiter?._id) === String(user.id) // אם אני המלצר המשויך
+                    );                    
+                    const newCustomerOrders = ordersData.filter(order => !order.assignedWaiter &&  ['pending', 'preparing', 'served'].includes(order.status));   // הזמנות של לקוחות ללא מלצר משויך - קריאות חדשות שצריך לטפל בהן               
+                    setWaiterOrders(myOrders);
+                    setUnassignedOrders(newCustomerOrders);
+                };
+                loadWaiterData();
+            }
+        }, [user, token])
+    );
 
 
     //טעינת הנתונים להודעה של הבאנר
@@ -167,6 +189,23 @@ const HomeScreen = () => {
                     <View style={[styles.welcomeSection, { alignItems: language === 'he' ? 'flex-end' : 'flex-start' }]}>
                         <Text style={[styles.welcomeText, { color: theme.text, textAlign: textAlign }]}> {t('welcome_user')} {user.fullName}! </Text>
                         <Text style={[styles.roleText, { color: theme.primary, textAlign: textAlign }]}> {t('your_role')}: {t(user.role)}</Text>
+                    
+                        {/* סטטיסטיקות משמרת עבור מלצר*/}
+                        {user.role === 'waiter' && myStaffData && (
+                            <View style={{ marginTop: 10, padding: 8, backgroundColor: theme.primary + '15', borderRadius: 10, alignItems: language === 'he' ? 'flex-end' : 'flex-start', width: '100%' }}>
+                                <View style={{ flexDirection: language === 'he' ? 'row-reverse' : 'row', alignItems: 'center', marginBottom: 5 }}>
+                                    <Ionicons name="time-outline" size={14} color={theme.primary} style={{ marginHorizontal: 4 }} />
+                                    <Text style={{ fontSize: 12, color: theme.text, fontWeight: 'bold' }}>{calculateShiftStats(myStaffData.lastShiftStart, myStaffData.hourlyWage, myStaffData.currentShiftTables).hours}h</Text>
+                                    <Text style={{ fontSize: 10, color: theme.text, opacity: 0.7, marginHorizontal: 2 }}>{t('shift_time')}</Text>
+                                </View>
+                                <View style={{ flexDirection: language === 'he' ? 'row-reverse' : 'row', alignItems: 'center' }}>
+                                    <Ionicons name="restaurant-outline" size={14} color={theme.primary} style={{ marginHorizontal: 4 }} />
+                                    <Text style={{ fontSize: 12, color: theme.text, fontWeight: 'bold' }}>{myStaffData.currentShiftTables || 0}</Text>
+                                    <Text style={{ fontSize: 10, color: theme.text, opacity: 0.7, marginHorizontal: 2 }}>{t('tables_served')}</Text>
+                                </View>
+                            </View>
+                        )}
+                        
                     </View>
 
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.circlesScroll} contentContainerStyle={{ flexGrow: 1, justifyContent: language === 'he' ? 'flex-start' : 'flex-end' }}>
@@ -184,6 +223,7 @@ const HomeScreen = () => {
                             {/* --- מסכים של מלצר / עובד  --- */}
                             {user.role === 'waiter' && (
                                 <>
+                                    <DashboardCard title={t('menu')} subtitle={t('show_menu_desc')} icon="🍔" theme={theme} onPress={() => navigation.navigate('(screens)/menuScreen' , { viewOnly: true })} />
                                     <DashboardCard  title={t('active_tables')} subtitle={t('tables_desc')} icon="🍽️"  theme={theme} onPress={() => navigation.navigate('(screens)/tablesScreen')} />
                                     <DashboardCard title={t('my_bonuses')} subtitle={t('bonuses_desc')} icon="💰" theme={theme} onPress={() => navigation.navigate('(screens)/staffBonusesScreen')}/>
                                 </>
@@ -203,15 +243,22 @@ const HomeScreen = () => {
 
                 <View height = '20'></View>
 
-
+                {/* כניסה/יציאה ממשמרת */ }
                 {user.role !== 'customer' && (
                     <View style={{ paddingHorizontal: 15 , marginTop: -40 , marginBottom: 10 , alignItems: language === 'he' ? 'flex-end' : 'flex-start'}}>
                         <TouchableOpacity style={{ backgroundColor: theme.primary, paddingVertical: 8, paddingHorizontal: 16, borderRadius: 25, elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 2 },shadowOpacity: 0.2,shadowRadius: 3,}} 
                             onPress={async () => {
                                 const res = await toggleShift(user.id);
                                 if(res.success) {
-                                    const data = await getActiveStaff();
+                                    const data = await getActiveStaff(token);
                                     setActiveStaff(data);
+                                    const me = data.find(s => s._id === user.id);
+                                    setMyStaffData(me || null); // עדכון הנתונים האישיים של המלצר אחרי שינוי סטטוס המשמרת
+                                    const ordersData = await getActiveOrders(token);
+                                    const myOrders = ordersData.filter(order =>  String(order.assignedWaiter?._id) === String(user.id)  );                    
+                                    const newCustomerOrders = ordersData.filter(order => !order.assignedWaiter &&  ['pending', 'preparing', 'served'].includes(order.status));   // הזמנות של לקוחות ללא מלצר משויך - קריאות חדשות שצריך לטפל בהן               
+                                    setWaiterOrders(myOrders);
+                                    setUnassignedOrders(newCustomerOrders);
                                 }
                             }}
                         >
@@ -223,9 +270,7 @@ const HomeScreen = () => {
                 <View style={{ marginTop: 10 }}>
                     {user.role === 'customer' && recommendedDishes.length > 0 ? (
                         <>
-                            <Text style={{ fontSize: 22, fontWeight: 'bold', color: theme.text, textAlign: textAlign }}>
-                                {t('chef_recommendations')} ✨
-                            </Text>
+                            <Text style={{ fontSize: 22, fontWeight: 'bold', color: theme.text, textAlign: textAlign }}> {t('chef_recommendations')} ✨</Text>
                             <View style={{ marginTop: 15 }}>
                                 <FlatList data={recommendedDishes} keyExtractor={(item) => item._id} horizontal showsHorizontalScrollIndicator={false} renderItem={({ item }) => (
                                         <View style={{ width: width * 0.60, marginHorizontal: 5 }}> 
@@ -282,7 +327,76 @@ const HomeScreen = () => {
 
 
                             </View>
-                    ) : null }
+
+                    // תצוגת מלצר
+                    ) : user.role === 'waiter' ? (
+                          <View style={{ paddingHorizontal: 5 }}>
+                                <Text style={{ fontSize: 22, fontWeight: 'bold', color: theme.text, textAlign: textAlign, marginBottom: 15 }}>{t('my_orders')} 🍽️</Text>
+                                {/* הבלוק שמוסיף התראות על לקוחות שממתינים למלצר */}
+                                {myStaffData && unassignedOrders && unassignedOrders.length > 0 && (
+                                    <View style={{ marginBottom: 20, backgroundColor: '#FFF3CD', padding: 15, borderRadius: 15, borderColor: '#F1C40F', borderWidth: 1 }}>
+                                        <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#D4AC0D', textAlign: textAlign, marginBottom: 10 }}>🔔 {t('new_customer_calls')}</Text>
+                                        <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
+                                            {unassignedOrders.map((order) => (
+                                                <View key={order._id} style={{ width: '100%', backgroundColor: theme.card, padding: 15, borderRadius: 10, marginBottom: 10, elevation: 2, flexDirection: language === 'he' ? 'row-reverse' : 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                    <View style={{ alignItems: language === 'he' ? 'flex-end' : 'flex-start' }}>
+                                                        <Text style={{ fontWeight: 'bold', color: theme.text, fontSize: 16 }}>{t('table')} {order.tableNumber}</Text>
+                                                        <Text style={{ fontSize: 12, color: theme.text, opacity: 0.7 }}>{order.items.length} {t('items')} • {order.dinersCount || 1} {t('diners')}</Text>
+                                                    </View>
+                                                    <TouchableOpacity 
+                                                        style={{ backgroundColor: theme.primary, paddingHorizontal: 15, paddingVertical: 8, borderRadius: 8 }}
+                                                        onPress={async () => {
+                                                            const res = await assignWaiterToOrder(order._id, token);                                                       
+                                                            if (res.success) {
+                                                                const ordersData = await getActiveOrders(token);                                                               
+                                                                const myOrders = ordersData.filter(o => 
+                                                                    String(o.assignedWaiter?._id) === String(user.id)
+                                                                );
+                                                                setWaiterOrders(myOrders);
+                                                                const newCustomerOrders = ordersData.filter(o => 
+                                                                    !o.assignedWaiter && ['pending', 'preparing', 'served'].includes(o.status)
+                                                                );
+                                                                setUnassignedOrders(newCustomerOrders);                                                               
+                                                            } 
+                                                            else { Alert.alert( language === 'he' ? 'שגיאה' : 'Error', language === 'he' ? 'מישהו אחר כבר לקח את השולחן או שיש שגיאה בחיבור.' : "Someone else took the table or there's a connection error."); }}}
+                                                    >
+                                                        <Text style={{ color: '#fff', fontWeight: 'bold' }}>{t('claim_table')} ✋</Text>
+                                                    </TouchableOpacity>
+                                                </View>
+                                            ))}
+                                        </View>
+                                    </View>
+                                )}
+                                {!myStaffData ? (
+                                    // מצב שבו המלצר לא נכנס למשמרת
+                                    <View style={{ padding: 40, backgroundColor: theme.card, borderRadius: 20, alignItems: 'center', borderStyle: 'dashed', borderWidth: 2, borderColor: theme.border }}>
+                                        <Ionicons name="bed-outline" size={40} color={theme.text} style={{ opacity: 0.3, marginBottom: 10 }} />
+                                        <Text style={{ color: theme.text, opacity: 0.8, fontSize: 18, fontWeight: 'bold' }}>{t('not_on_shift')}</Text>
+                                        <Text style={{ color: theme.text, opacity: 0.6, marginTop: 5 }}>{t('clock_in_prompt')}</Text>
+                                    </View>
+                                ) : 
+                                waiterOrders && waiterOrders.length > 0 ? (
+                                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
+                                        {waiterOrders.map((order) => (
+                                            <TouchableOpacity key={order._id} style={{ width: '48%', backgroundColor: theme.card, padding: 15, borderRadius: 15, marginBottom: 10, borderRightWidth: 5, borderRightColor: getStatusColor(order.status), elevation: 2 }} onPress={() => navigation.navigate('(screens)/tablesScreen', { orderId: order._id })} >
+                                                <Text style={{ fontWeight: 'bold', color: theme.text, fontSize: 16, textAlign: textAlign }}> {t('table')} {order.tableNumber}</Text>
+                                                <Text style={{ fontSize: 12, color: theme.text, opacity: 0.7, textAlign: textAlign }}>{order.items.length} {t('items')}</Text>
+                                                <View style={{ marginTop: 8, backgroundColor: theme.primary + '20', padding: 4, borderRadius: 5, alignSelf: language === 'he' ? 'flex-end' : 'flex-start' }}>
+                                                    <Text style={{ fontSize: 10, color: theme.primary, fontWeight: 'bold' }}> {t(order.status)} </Text>
+                                                </View>
+                                            </TouchableOpacity>
+                                        ))}
+                                       
+                                    </View>
+                                    
+                                ) : (
+                                    // מצב שבו הוא במשמרת אבל עוד לא פתח שולחנות
+                                     <View style={{ padding: 40, backgroundColor: theme.card, borderRadius: 20, alignItems: 'center', borderStyle: 'dashed', borderWidth: 2, borderColor: theme.border }}>
+                                        <Text style={{ color: theme.text, opacity: 0.6 }}>{t('no_active_tables_yet')}</Text>
+                                    </View>
+                                )}
+                          </View>
+                    ) : null}
                 </View>
 
             </ScrollView>
@@ -298,7 +412,9 @@ const HomeScreen = () => {
                 <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }]}>
                     <View style={{ backgroundColor: theme.card, width: '85%', padding: 20, borderRadius: 20, elevation: 10, shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 5 }}>
                         <Text style={{ fontSize: 22, fontWeight: 'bold', color: theme.text, textAlign: textAlign, marginBottom: 10 }}> {t('table')} {selectedAdminOrder.tableNumber} </Text>
-                        <Text style={{ fontSize: 16, color: theme.text, opacity: 0.8, textAlign: textAlign, marginBottom: 15 }}>{t('waiter_label')}: {selectedAdminOrder.user?.fullName || t('unknown')}</Text>
+                        <Text style={{ fontSize: 16, color: theme.text, opacity: 0.8, textAlign: textAlign, marginBottom: 15 }}>{t('waiter_label')}: {selectedAdminOrder.assignedWaiter?.fullName ? selectedAdminOrder.assignedWaiter.fullName  : (selectedAdminOrder.user?.role === 'waiter' ? selectedAdminOrder.user.fullName  : t('unassigned')) 
+                            }
+                        </Text>                        
                         <View style={{ backgroundColor: theme.background, padding: 15, borderRadius: 10, marginBottom: 20 }}>
                             <Text style={{ fontWeight: 'bold', color: theme.text, textAlign: textAlign, marginBottom: 10 }}>{t('items')}:</Text>
                             {selectedAdminOrder.items.map((item, index) => (
@@ -323,7 +439,7 @@ const HomeScreen = () => {
                                     const res = await updateOrderStatus(selectedAdminOrder._id, 'served', token);
                                     if (res.success){
                                         setActiveOrders(res.data);
-                                        const updatedStaff = await getActiveStaff();
+                                        const updatedStaff = await getActiveStaff(token);
                                         setActiveStaff(updatedStaff);
                                     }
                                      
@@ -336,9 +452,9 @@ const HomeScreen = () => {
                                 onPress={async () => {
                                     const res = await updateOrderStatus(selectedAdminOrder._id, 'paid', token);
                                     if (res.success) {
-                                        const updatedOrders = await getActiveOrders();
+                                        const updatedOrders = await getActiveOrders(token);
                                         setActiveOrders(updatedOrders);
-                                        const updatedStaff = await getActiveStaff(); // מושכים מחדש את פרטי העובדים 
+                                        const updatedStaff = await getActiveStaff(token); // מושכים מחדש את פרטי העובדים 
                                         console.log("עובדים מהשרת:", updatedStaff.map(s => s.fullName + " : " + s.currentShiftTables));
                                         setActiveStaff(updatedStaff);
                                     }

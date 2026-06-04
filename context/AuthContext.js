@@ -30,6 +30,8 @@ export const AuthProvider = ({ children }) => {
                     setUser(JSON.parse(savedUser));
                     axios.defaults.headers.common['Authorization'] = `Bearer ${savedToken}`; //הגדרות טוקן לברירת מחדל לכל הבקשות של אקסיוס 
                 }
+
+              
             } 
             catch (err) { console.error("Failed to load stored auth data"); }
             finally{ setLoading(false); }

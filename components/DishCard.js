@@ -12,6 +12,7 @@ const DishCard = ({ product , onAddPress }) => {
     const displayDescription = typeof product.description === 'object' ? (product.description[language] || product.description.he) : product.description;
 
     return (
+       
         <TouchableOpacity style = {[styles.card , {backgroundColor : theme.card , borderColor : theme.border}]} activeOpacity={0.8} >{/* כרטיס לחיצה על המנה - הרכיב הוא כפתור שעוטף את כולם והופך את כל מי שבתוכו ללחיץ */ }
             <Image style = {styles.image} source = {{uri : product.image || 'https://via.placeholder.com/150'}}/>
             <View style = {styles.infoContainer}>
@@ -38,17 +39,23 @@ const DishCard = ({ product , onAddPress }) => {
                         )}
                     </View>
 
-                    <TouchableOpacity style={{ backgroundColor: theme.primary, width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center', marginLeft: 10 }} onPress={() => onAddPress && onAddPress(product)} >
-                        <Text style={{ color: '#fff', fontSize: 24, fontWeight: 'bold', marginTop: -2 }}>+</Text>
-                    </TouchableOpacity>
+                         {onAddPress && (
+                            <TouchableOpacity style={{ backgroundColor: theme.primary, width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center', marginLeft: 10 }} onPress={() => onAddPress && onAddPress(product)} >
+                                <Text style={{ color: '#fff', fontSize: 24, fontWeight: 'bold', marginTop: -2 }}>+</Text>
+                            </TouchableOpacity>
+                         )}   
 
                 </View>
 
             </View>
         </TouchableOpacity>
+       
+        
     );
+    
 
 }; 
+
 
 const styles = StyleSheet.create({
     card: {

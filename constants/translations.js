@@ -89,6 +89,17 @@ export const translations = {
         unknown: "Unknown",
         dish: "Dish",
         order_info: "Order Info",
+        current_shift_status: "Current Shift Status",
+        not_on_shift: "You are currently off duty",
+        clock_in_prompt: "Clock in to start tracking your shift data.",
+        show_menu_desc: "Show Menu to Customers",
+        new_customer_calls: "New customer requests!",
+        diners: "Diners", 
+        claim_table: "Claim Table",
+        claim_table_title: "Claim Responsibility",
+        claim_table_msg: "This will assign the table to you.",
+        unassigned: "Waiting for waiter",
+
 
 
         //Add to cart modal
@@ -120,7 +131,104 @@ export const translations = {
         give_bonus_title: "Give Bonus",
         bonus_amount_placeholder: "Bonus amount...",
         payout_success: "Payment successful, all data has been reset!",
-        pay_all_btn: "💰 Pay All & Close Month"
+        pay_all_btn: "💰 Pay All & Close Month",
+
+
+        // dashboard
+        dashboard_title: "Dashboard",
+        total_income: "Total Income",
+        total_expenses: "Wages Expenses",
+        net_profit: "Net Profit",
+        business_intelligence: "Business Intelligence",
+        best_seller: "Most Ordered Dish",
+        most_profitable: "Most Profitable Dish",
+        top_waiter: "Employee of the Month",
+        ordered_times: "Ordered",
+        times: "times",
+        generated_revenue: "Generated",
+        served_tables_stats: "Served",
+        tables: "tables",
+        recent_payouts: "Recent Salary Payouts",
+        recent_orders: "Recent Closed Orders",
+        no_data_yet: "Not enough data yet",
+        amount: "Amount",
+        date: "Date",
+        total: "Total",
+        dish_revenue: "Revenue by Dish",
+        salary_bonus: "Salary & Bonus",
+        hide_orders: "Hide Orders",
+        show_orders: "Order History",
+        hide_salary: "Hide Salary",
+        show_salary: "Salary History",
+        salary: "Salary",
+        bonus: "Bonus",
+        most_expensive_dish: "Most Expensive Dish",
+        recent_closed_orders: "Recent Closed Orders",
+        staff_salary_details: "Staff Salary Details",
+        tables_served: "Tables Served",
+
+
+        // edit menu screen
+        edit_menu: "Edit Menu",
+        search_dish: "Search dish...",
+        all_categories: "All",
+        sort_default: "Default",
+        sort_desc: "High to Low",
+        sort_asc: "Low to High",
+        coming_soon: "Coming Soon",
+        edit_dish_msg: "Edit screen will be built in the next step.",
+        delete_dish_msg: "Delete function will be built in the next step.",
+        add_dish_msg: "Add popup will be built in the next step.",
+        add_dish: "Add New Dish",
+        edit_dish: "Edit Dish",
+        dish_name_he: "Dish Name (Hebrew)",
+        dish_name_en: "Dish Name (English)",
+        price: "Price (₪)",
+        category: "Category",
+        save: "Save",
+        delete_title: "Delete Dish",
+        delete_confirm: "Are you sure you want to delete this dish?",
+        delete: "Delete",
+
+        // Tables Screen 
+        open_table: "Open New Table",
+        table_number_placeholder: "Table number...",
+        diners_count_placeholder: "Number of diners...",
+        start_order: "Start Order",
+        add_more_items: "Add More Items",
+        table_details: "Table Details",
+        diners: "Diners",
+        no_tables_waiter: "You don't have any active tables right now.",
+        "mark_as_preparing": "Mark as Preparing",
+        "mark_as_served": "_mark_as_served",
+
+
+        // menu screen
+        send_to_kitchen: "Send to Kitchen",
+        items_selected: "Items selected",
+        order_sent_success: "Order sent to kitchen successfully!",
+
+        // staff bonuses screen
+        my_bonuses: "My Bonuses",
+        current_accrued_bonuses: "Current Accrued Bonuses",
+        payment_history: "Payment History",
+        payout: "Payout Made",
+        no_history: "No history yet",
+        monthly_salary_accrued: "Accrued Monthly Salary",
+        tab_salaries: "Salaries",
+        tab_shifts: "Shifts & Hours",
+        monthly_salary_title: "Monthly Salary",
+        base_salary: "Base Salary",
+        plus_bonus: "+ Bonus",
+        total_paid: "Total Paid",
+        shift_summary: "Shift Summary",
+        hours: "Hours",
+        shift_bonus: "Shift Bonus",
+        no_salary_history: "No salary history yet",
+        no_shift_history: "No shift history yet"
+
+
+
 
        
     } ,
@@ -214,12 +322,23 @@ export const translations = {
         tables_served: "שולחנות ששורתו",
         bonuses_earned: "בונוסים שנצברו",
         current_salary: "שכר נוכחי",
+        current_shift_status: "סטטוס משמרת נוכחית",
+        not_on_shift: "את/ה לא במשמרת כרגע",
+        clock_in_prompt: "היכנס/י למשמרת כדי להתחיל לעקוב אחרי הנתונים.",
+        show_menu_desc: "הצג תפריט ללקוחות",
+        new_customer_calls: "קריאות חדשות מלקוחות!",
+        diners: "סועדים", 
+        claim_table: "קח שולחן",
+        claim_table_title: "לקחת אחריות",
+        claim_table_msg: "כאן תופעל הפונקציה שמשייכת את השולחן אלייך.",
+        unassigned: "ממתין למלצר",
 
 
         //Add to cart modal
         kitchen_notes: "הערות למטבח:",
         kitchen_notes_placeholder: "לדוגמה: בלי בצל, רטבים בצד...",
         add_to_order: "הוסף להזמנה -",
+
 
          // manageUsersScreen
         staff_and_wages: "צוות ושכר 💰",
@@ -244,7 +363,100 @@ export const translations = {
         give_bonus_title: "מתן בונוס",
         bonus_amount_placeholder: "סכום הבונוס...",
         payout_success: "התשלום בוצע בהצלחה והנתונים התאפסו!",
-        pay_all_btn: " בצע תשלום לכולם וסגור חודש"
+        pay_all_btn: " בצע תשלום לכולם וסגור חודש",
+
+
+         // dashboard
+        dashboard_title: "לוח בקרה",
+        total_income: "סך הכנסות",
+        total_expenses: "הוצאות שכר",
+        net_profit: "רווח נקי",
+        business_intelligence: "בינה עסקית (BI)",
+        best_seller: "המנה הנמכרת ביותר",
+        most_profitable: "המנה הרווחית ביותר",
+        top_waiter: "מצטיין החודש",
+        ordered_times: "הוזמנה",
+        times: "פעמים",
+        generated_revenue: "הכניסה",
+        served_tables_stats: "שירת/ה",
+        tables: "שולחנות",
+        recent_payouts: "היסטוריית משכורות",
+        recent_orders: "הזמנות אחרונות שנסגרו",
+        no_data_yet: "אין מספיק נתונים כרגע",
+        amount: "כמות",
+        date: "תאריך",
+        total: "סך הכל",
+        dish_revenue: "הכנסות ממנות",
+        salary_bonus: "שכר ובונוס",
+        hide_orders: "הסתר הזמנות",
+        show_orders: "היסטוריית הזמנות",
+        hide_salary: "הסתר משכורות",
+        show_salary: "היסטוריית משכורות",
+        salary: "שכר",
+        bonus: "בונוס",
+        most_expensive_dish: "המנה היקרה",
+        recent_closed_orders: "הזמנות סגורות אחרונות",
+        staff_salary_details: "פירוט שכר עובדים",
+        tables_served: "שולחנות ששורתו",
+
+
+        // edit menu screen
+        edit_menu: "עריכת תפריט",
+        search_dish: "חיפוש מנה...",
+        all_categories: "הכל",
+        sort_default: "רגיל",
+        sort_desc: "מהיקר לזול",
+        sort_asc: "מהזול ליקר",
+        coming_soon: "בקרוב",
+        edit_dish_msg: "נבנה את מסך העריכה בשלב הבא.",
+        delete_dish_msg: "נבנה את פונקציית המחיקה בשלב הבא.",
+        add_dish_msg: "נפתח פופאפ הוספה בשלב הבא.",
+        add_dish: "הוספת מנה חדשה",
+        edit_dish: "עריכת מנה",
+        dish_name_he: "שם המנה (בעברית)",
+        dish_name_en: "שם המנה (באנגלית)",
+        price: "מחיר (₪)",
+        category: "קטגוריה",
+        save: "שמירה",
+        delete_title: "מחיקת מנה",
+        delete_confirm: "האם את בטוחה שברצונך למחוק מנה זו?",
+        delete: "מחק",
+
+        // Tables Screen 
+        open_table: "פתיחת שולחן חדש",
+        table_number_placeholder: "מספר שולחן...",
+        diners_count_placeholder: "מספר סועדים...",
+        start_order: "התחל הזמנה",
+        add_more_items: "הוסף מנות לשולחן",
+        table_details: "פרטי שולחן",
+        diners: "סועדים",
+        no_tables_waiter: "אין לך שולחנות פעילים כרגע. אפשר לפתוח שולחן חדש למטה!",
+        "mark_as_preparing": "סמן בהכנה",
+        "mark_as_served": "סמן שהוגש",
+
+        //menu screen
+        send_to_kitchen: "שלח למטבח",
+        items_selected: "מנות נבחרו",
+        order_sent_success: "ההזמנה נשלחה למטבח בהצלחה!",
+
+        // staff bonuses screen
+        my_bonuses: "הבונוסים שלי",
+        current_accrued_bonuses: "בונוסים צבורים",
+        payment_history: "היסטוריית תשלומים",
+        payout: "תשלום שבוצע",
+        no_history: "עדיין אין היסטוריה",
+        monthly_salary_accrued: "שכר חודשי נצבר",
+        tab_salaries: "משכורות",
+        tab_shifts: "משמרות ושעות",
+        monthly_salary_title: "משכורת חודשית",
+        base_salary: "שכר בסיס",
+        plus_bonus: "+ בונוס",
+        total_paid: "סה״כ שולם",
+        shift_summary: "סיכום משמרת",
+        hours: "שעות",
+        shift_bonus: "בונוס משמרת",
+        no_salary_history: "אין עדיין היסטוריית משכורות",
+        no_shift_history: "אין עדיין היסטוריית משמרות"
 
 
 

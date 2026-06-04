@@ -4,11 +4,11 @@ import axios from 'axios';
 
 export const ServerContext = createContext();
 
-export const ServerProvider = ({ children }) => {
+export const ServerProvider = ({ children }) => { // config 
     const [isConnected, setIsConnected] = useState(false);
     const [loading, setLoading] = useState(true);
     
-    const API_URL = 'http://10.0.0.11:3020/api'; 
+    const API_URL = 'http://10.0.0.6:3020/api'; 
     
     const getProducts = async () => {
         try {
@@ -48,10 +48,10 @@ export const ServerProvider = ({ children }) => {
 
 
     //  פונקציה למשיכת עובדים פעילים
-    const getActiveStaff = async () => {
+    const getActiveStaff = async (token) => {
         try {
-            const response = await axios.get(`${API_URL}/auth/active-staff`);
-            return response.data; 
+           const response = await axios.get(`${API_URL}/auth/active-staff`, { headers: { Authorization: `Bearer ${token}`} });            
+           return response.data; 
         } catch (error) {
             console.error("Error fetching staff:", error);
             return [];
@@ -64,9 +64,9 @@ export const ServerProvider = ({ children }) => {
 
 
     // פונקציה למשיכת שולחנות פעילים 
-    const getActiveOrders = async () => {
+    const getActiveOrders = async (token) => {
         try {
-             const response = await axios.get(`${API_URL}/orders/active`);
+            const response = await axios.get(`${API_URL}/orders/active`, { headers: { Authorization: `Bearer ${token}`}});
             return response.data;
         } 
         catch (error) {
@@ -81,7 +81,7 @@ export const ServerProvider = ({ children }) => {
         try {
             const response = await axios.patch( `${API_URL}/orders/${orderId}/status`, { status: newStatus }, { headers: { Authorization: `Bearer ${token}` }} );
             if(response.status === 200){
-                const updatedOrders = await getActiveOrders();
+                const updatedOrders = await getActiveOrders(token);
                 return { success: true, data: updatedOrders };
             }
         } 
@@ -190,9 +190,125 @@ export const ServerProvider = ({ children }) => {
     };
 
 
+    // משיכת היסטוריית הזמנות ללוח הבקרה
+    const getOrderHistory = async(token) => {
+        try {
+            const response = await axios.get(`${API_URL}/orders/history`, {headers: { Authorization: `Bearer ${token}`}});
+            return response.data;
+        } 
+        catch (err) {
+            console.error("Error fetching order history:", err);
+            return [];
+        }
+    };
+
+
+    // הוספת מנה חדשה
+    const createProduct = async (token, productData) => {
+        try {
+            const response = await axios.post(`${API_URL}/products`, productData, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            return response.data;
+        } catch (error) {
+            console.error("Error creating product:", error.response?.data || error.message);
+            return null;
+        }
+    };
+
+    // עדכון מנה קיימת
+    const updateProduct = async (token, productId, productData) => {
+        try {
+            const response = await axios.put(`${API_URL}/products/${productId}`, productData, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            return response.data;
+        } catch (error) {
+            console.error("Error updating product:", error.response?.data || error.message);
+            return null;
+        }
+    };
+
+    // מחיקת מנה
+    const deleteProduct = async (token, productId) => {
+        try {
+            const response = await axios.delete(`${API_URL}/products/${productId}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            return response.data;
+        } catch (error) {
+            console.error("Error deleting product:", error.response?.data || error.message);
+            return null;
+        }
+    };
+
+
+    // עדכון מנות בתוך הזמנה פתוחה (מחיקה/עריכה)
+    const updateOrderItems = async (orderId, updatedItems, token) => {
+        try {
+            const response = await axios.put(`${API_URL}/orders/${orderId}/items`, 
+                { items: updatedItems },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            return { success: true, data: response.data };
+        } catch (error) {
+            console.error("Error updating order items:", error);
+            return { success: false, error: error.response?.data?.message || 'Update failed' };
+        }
+    };
+
+
+    // יצירת הזמנה חדשה או הוספה לשולחן קיים שליחה למטבח 
+    const createOrder = async (orderData, token) => {
+        try {
+            const response = await axios.post(`${API_URL}/orders`, orderData,{ headers: { Authorization: `Bearer ${token}` } });
+            return { success: true, data: response.data };
+        } 
+        catch (error) {
+            console.error("Error creating order:", error);
+            return { success: false, error: error.response?.data?.message || 'Failed to send order' };
+        }
+    };
+
+
+    // פונקציה לשיוך הזמנה לשולחן קיים למלצר שמטפל בו
+    const assignWaiterToOrder = async (orderId, token) => {
+        try {
+            const response = await axios.patch(`${API_URL}/orders/${orderId}/assign`, {},
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
+            
+            return { success: true, data: response.data }; 
+            
+        } 
+        catch (error) {
+            console.error("Error assigning waiter:", error.response?.data?.message || error.message);
+            return { success: false };
+        }
+    };
+
+
+    // ביטול ומחיקת הזמנה שלמה (רק לממתינות)
+    const deleteOrder = async (orderId, token) => {
+        try {
+            const response = await axios.delete(`${API_URL}/orders/${orderId}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            return { success: true, data: response.data };
+        } catch (error) {
+            console.error("Error deleting order:", error.response?.data?.message || error.message);
+            return { success: false };
+        }
+    };
+
 
     return (
-        <ServerContext.Provider value={{ API_URL, isConnected, loading, connectServer , getProducts , toggleShift, getActiveStaff , getActiveOrders , updateOrderStatus , getAnnouncement , updateAnnouncement , getPendingStaff , approveStaffMember , getAllStaff , updateStaffWage , addStaffBonus , resetAllWages }}>
+        <ServerContext.Provider value={{ API_URL, isConnected, loading, connectServer , getProducts , toggleShift, getActiveStaff , getActiveOrders , updateOrderStatus , getAnnouncement , updateAnnouncement , getPendingStaff , approveStaffMember , getAllStaff , updateStaffWage , addStaffBonus , resetAllWages , getOrderHistory , createProduct , updateProduct , deleteProduct , updateOrderItems , createOrder , assignWaiterToOrder , deleteOrder }}>
             {children}
         </ServerContext.Provider>
     );
