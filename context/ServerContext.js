@@ -307,8 +307,34 @@ export const ServerProvider = ({ children }) => { // config
     };
 
 
+    // משיכת ההזמנות של הלקוח
+    const getMyOrders = async (token) => {
+        try {
+            const response = await axios.get(`${API_URL}/orders/my-orders`, { headers: { Authorization: `Bearer ${token}` } });
+            return response.data;
+        } catch (error) {
+            console.error("Error fetching my orders:", error);
+            return [];
+        }
+    };
+
+
+    // פונקציה לעדכון פרטי הפרופיל של המשתמש
+    const updateUserProfile = async (userId, userData, token) => {
+        try {
+            const response = await axios.patch(`${API_URL}/auth/profile/${userId}`, userData, { headers: { Authorization: `Bearer ${token}`}});
+            return { success: true, data: response.data };
+        } 
+        catch (error) {
+            console.error("Error updating profile:", error);
+            return { success: false, message: "Update failed" };
+        }
+    };
+
+    
+
     return (
-        <ServerContext.Provider value={{ API_URL, isConnected, loading, connectServer , getProducts , toggleShift, getActiveStaff , getActiveOrders , updateOrderStatus , getAnnouncement , updateAnnouncement , getPendingStaff , approveStaffMember , getAllStaff , updateStaffWage , addStaffBonus , resetAllWages , getOrderHistory , createProduct , updateProduct , deleteProduct , updateOrderItems , createOrder , assignWaiterToOrder , deleteOrder }}>
+        <ServerContext.Provider value={{ API_URL, isConnected, loading, connectServer , getProducts , toggleShift, getActiveStaff , getActiveOrders , updateOrderStatus , getAnnouncement , updateAnnouncement , getPendingStaff , approveStaffMember , getAllStaff , updateStaffWage , addStaffBonus , resetAllWages , getOrderHistory , createProduct , updateProduct , deleteProduct , updateOrderItems , createOrder , assignWaiterToOrder , deleteOrder , getMyOrders , updateUserProfile }}>
             {children}
         </ServerContext.Provider>
     );

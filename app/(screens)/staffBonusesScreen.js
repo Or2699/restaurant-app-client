@@ -41,7 +41,14 @@ const StaffBonusesScreen = () => {
 
     const payoutHistory = userData?.payoutHistory ? [...userData.payoutHistory].reverse() : []; // היסטוריית תשלומים מהחדש לישן
     const shiftHistory = userData?.shiftHistory ? [...userData.shiftHistory].reverse() : []; // היסטוריית משמרות מהחדשה לישנה
-    const managerBonuses = payoutHistory?.filter(item => item.isManagerBonus)?.reduce((sum, item) => sum + item.bonuses, 0) || 0; // החישוב של הבונוסים מהמנהל
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+    const managerBonuses = payoutHistory?.filter(item => {
+        if (!item.isManagerBonus || !item.date) return false;
+        const itemDate = new Date(item.date);
+        return itemDate.getMonth() === currentMonth && itemDate.getFullYear() === currentYear;
+    })
+    ?.reduce((sum, item) => sum + item.bonuses, 0) || 0;
 
     return (
         <View style={[styles.container, { backgroundColor: theme.background }]}>

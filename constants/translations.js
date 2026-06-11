@@ -99,7 +99,7 @@ export const translations = {
         claim_table_title: "Claim Responsibility",
         claim_table_msg: "This will assign the table to you.",
         unassigned: "Waiting for waiter",
-
+        item_added_to_cart: "Item successfully added to cart!",
 
 
         //Add to cart modal
@@ -189,6 +189,13 @@ export const translations = {
         delete_title: "Delete Dish",
         delete_confirm: "Are you sure you want to delete this dish?",
         delete: "Delete",
+        vegetarian: "Vegetarian",
+        alcoholic: "Alcoholic",
+        meat: "Meat",
+        healthy: "Healthy",
+        fish: "Fish",
+        dairy: "Dairy",
+        recommended: "Recommended",
 
         // Tables Screen 
         open_table: "Open New Table",
@@ -225,11 +232,62 @@ export const translations = {
         hours: "Hours",
         shift_bonus: "Shift Bonus",
         no_salary_history: "No salary history yet",
-        no_shift_history: "No shift history yet"
+        no_shift_history: "No shift history yet",
 
+        // customer menu screen    
+        search_dish: "Search dish...",
+        filters: "Filters",
+        sort_and_filter: "Sort & Filter",
+        sort_by_price: "Sort by Price",
+        price_low_to_high: "Low to High",
+        price_high_to_low: "High to Low",
+        dietary_tags: "Dietary Preferences",
+        vegan: "Vegan",
+        gf: "Gluten-Free",
+        popular: "Popular 🔥",
+        chef: "Chef's Choice 👨‍🍳",
+        show_results: "Show Results",
+        all_categories: "All Categories",
+        item_added_to_cart: "Item added successfully!",
+        no_dishes_found: "No dishes match your search",
+        view_cart: "View Cart",
 
+        // cart screen
+        clear_cart_title: "Clear Cart",
+        clear_cart_confirm: "Are you sure you want to cancel the order and empty your cart?",
+        yes_clear: "Yes, empty cart",
+        clear_cart: "Cancel Order 🗑️",
 
+        //orders screen
+        order_history: "Order History",
+        no_order_history: "No order history.",
+        unassigned: "Not assigned",
+        delete: "Delete",
+        checkout: "Checkout",
+        total: "Total:",
+        pay_now: "Pay Now",
+        error: "Error",
+        pending: "Pending",
+        preparing: "Preparing",
+        served: "Served",
+        cart_is_empty: "cart is empty",
+        wait_for_serve: "Waiting for serve",
+        thank_you: "Thank you!",
+        order_paid: "Order paid successfully",
+        no_active_order: "No active order",
+        delete_order: "Cancel Order",
+        confirm_delete: "Are you sure you want to cancel this order?",
 
+        // profile screen + about screen
+        profile_updated: "Profile updated successfully",
+        switch_lang: "Switch Language",
+        logout: "Logout",
+        save: "Save Changes",
+        about_description: "Welcome to MyRestaurant! We are a smart restaurant management system. We believe in technology that seamlessly connects the kitchen, staff, and customers to provide the best service experience.",
+        quick_actions: "Quick Actions:",
+        navigate_waze: "Navigate to Restaurant (Waze)",
+        call_us: "Call Us",
+        version: "Version"
        
     } ,
 
@@ -332,6 +390,7 @@ export const translations = {
         claim_table_title: "לקחת אחריות",
         claim_table_msg: "כאן תופעל הפונקציה שמשייכת את השולחן אלייך.",
         unassigned: "ממתין למלצר",
+        item_added_to_cart: "הפריט התווסף לעגלה בהצלחה!",
 
 
         //Add to cart modal
@@ -415,12 +474,19 @@ export const translations = {
         edit_dish: "עריכת מנה",
         dish_name_he: "שם המנה (בעברית)",
         dish_name_en: "שם המנה (באנגלית)",
-        price: "מחיר (₪)",
+        price: "(₪)מחיר",
         category: "קטגוריה",
         save: "שמירה",
         delete_title: "מחיקת מנה",
         delete_confirm: "האם את בטוחה שברצונך למחוק מנה זו?",
         delete: "מחק",
+        vegetarian: "צמחוני",
+        alcoholic: "אלכוהולי",
+        meat: "בשרי",
+        healthy: "בריא",
+        fish: "דגים",
+        dairy: "חלבי",
+        recommended: "מומלץ",
 
         // Tables Screen 
         open_table: "פתיחת שולחן חדש",
@@ -456,7 +522,63 @@ export const translations = {
         hours: "שעות",
         shift_bonus: "בונוס משמרת",
         no_salary_history: "אין עדיין היסטוריית משכורות",
-        no_shift_history: "אין עדיין היסטוריית משמרות"
+        no_shift_history: "אין עדיין היסטוריית משמרות",
+
+        // customer menu screen
+        search_dish: "... חיפוש מנה",
+        filters: "סינון",
+        sort_and_filter: "מיון וסינונים",
+        sort_by_price: "מיון לפי מחיר",
+        price_low_to_high: "מהזול ליקר",
+        price_high_to_low: "מהיקר לזול",
+        dietary_tags: "העדפות מיוחדות",
+        vegan: "טבעוני",
+        gf: "ללא גלוטן",
+        popular: "פופולארי 🔥",
+        chef: "המלצת שף 👨‍🍳",
+        show_results: "הצג תוצאות",
+        all_categories: "כל הקטגוריות",
+        item_added_to_cart: "הפריט התווסף בהצלחה!",
+        no_dishes_found: "לא נמצאו מנות התואמות לחיפוש",
+        view_cart: "צפה בעגלה",
+
+        // cart screen
+        clear_cart_title: "ריקון העגלה",
+        clear_cart_confirm: "האם אתה בטוח שברצונך לבטל את ההזמנה ולרוקן את העגלה?",
+        yes_clear: "כן, רוקן עגלה",
+        clear_cart: "🗑️ביטול הזמנה ",
+
+        //orders screen
+        order_history: "היסטוריית הזמנות",
+        no_order_history: "אין היסטוריית הזמנות.",
+        unassigned: "טרם שויך",
+        delete: "מחק",
+        checkout: "סגירת חשבון",
+        total: "סך הכל:",
+        pay_now: "לתשלום",
+        error: "שגיאה",
+        pending: "ממתין",
+        preparing: "בהכנה",
+        served: "הוגש",
+        cart_is_empty: "העגלה ריקה",
+        wait_for_serve: "ממתין להגשה",
+        thank_you: "!תודה",
+        order_paid: "החשבון שולם בהצלחה",
+        no_active_order: "אין הזמנה פעילה",
+        delete_order: "ביטול הזמנה",
+        confirm_delete: "?האם אתה בטוח",
+
+        // profile screen + about screen
+        profile_updated: "הפרופיל עודכן בהצלחה",
+        switch_lang: "החלף שפה",
+        logout: "התנתק מהמערכת",
+        save: "שמור שינויים",
+        about_description: "ברוכים הבאים ל-MyRestaurant! אנחנו מערכת חכמה לניהול מסעדות. אנחנו מאמינים בטכנולוגיה שמחברת בין המטבח, לצוות, וללקוחות בצורה חלקה ומהירה, כדי להעניק את חוויית השירות הטובה ביותר.",
+        quick_actions: "פעולות מהירות:",
+        navigate_waze: "(Waze) ניווט למסעדה ",
+        call_us: "התקשר אלינו",
+        version: "גרסה"
+
 
 
 

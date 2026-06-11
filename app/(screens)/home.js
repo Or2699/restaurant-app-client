@@ -33,6 +33,8 @@ const HomeScreen = () => {
     const [myStaffData, setMyStaffData] = useState(null); // שמירת הנתונים האישיים של המלצר כשהוא במשמרת    const { width } = Dimensions.get('window'); // רוחב המסך לשימוש באנימציות
     const [waiterOrders, setWaiterOrders] = useState([]); // שומר את השולחנות של המלצר
     const [unassignedOrders, setUnassignedOrders] = useState([]); // הזמנות של לקוחות ללא מלצר
+    const [toastMessage, setToastMessage] = useState('');
+    const [showToast, setShowToast] = useState(false);
     const { width } = Dimensions.get('window');
     const marqueeAnim = useRef(new Animated.Value(width)).current;
    
@@ -213,7 +215,7 @@ const HomeScreen = () => {
                             {/* --- מסכים של לקוח  --- */}
                             {user.role === 'customer' && (
                                 <>
-                                    <DashboardCard title={t('menu')} subtitle={t('menu_description')}  icon="🍔"  theme={theme}  onPress={() => navigation.navigate('(screens)/menuScreen')}  />
+                                    <DashboardCard title={t('menu')} subtitle={t('menu_description')}  icon="🍔"  theme={theme}  onPress={() => navigation.navigate('(screens)/customerMenuScreen')}  />
                                     <DashboardCard  title={t('my_orders')} subtitle={t('orders_desc')} icon="📜" theme={theme}  onPress={() => navigation.navigate('(screens)/ordersScreen')}  />
                                     <DashboardCard title={t('profile')} subtitle={t('profile_desc')} icon="👤" theme={theme} onPress={() => navigation.navigate('(screens)/profileScreen')} />
                                     <DashboardCard title={t('about')} subtitle={t('about_desc')} icon="ℹ️" theme={theme} onPress={() => navigation.navigate('(screens)/aboutScreen')} />
@@ -468,7 +470,16 @@ const HomeScreen = () => {
                 </View>
             )}
 
-            <AddToCartModal visible={isModalVisible} dish={selectedDish}  onClose={() => setModalVisible(false)}  onAddToCart={(orderData) => { console.log("הזמנה חדשה התקבלה במערכת:", orderData); setModalVisible(false);}}  />
+            {showToast && (
+                <View style={{ position: 'absolute', top: 120, left: 0, right: 0, alignItems: 'center', zIndex: 99999 }}>
+                    <View style={{ backgroundColor: '#2ECC71', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 25, flexDirection: 'row', alignItems: 'center', elevation: 5 }}>
+                        <Ionicons name="checkmark-circle" size={20} color="#fff" style={{ marginRight: 8 }} />
+                        <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>{toastMessage}</Text>
+                    </View>
+                </View>
+            )}
+
+            <AddToCartModal visible={isModalVisible} dish={selectedDish}  onClose={() => setModalVisible(false)}  onAddToCart={(orderData) => { console.log("הזמנה חדשה התקבלה במערכת:", orderData); setModalVisible(false); setToastMessage(t('item_added_to_cart') || 'הפריט התווסף לעגלה!'); setShowToast(true); setTimeout(() => setShowToast(false), 3000);}}  />
         
             {/* מודל עדכון הודעה למנהלת */}
             {isUpdateModalVisible && (

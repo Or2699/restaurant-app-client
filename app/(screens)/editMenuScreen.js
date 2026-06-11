@@ -32,6 +32,38 @@ const EditMenuScreen = () => {
     const [formPrice, setFormPrice] = useState('');
     const [formCategory, setFormCategory] = useState('');
     const [formImage, setFormImage] = useState('');
+    const [formTags, setFormTags] = useState([]);
+
+    const availableTags = [
+        { id: 'vegan', he: 'טבעוני', en: 'vegan' },
+        { id: 'vegetarian', he: 'צמחוני', en: 'vegetarian' },
+        { id: 'gf', he: 'ללא גלוטן', en: 'gf' },
+        { id: 'chef', he: 'המלצת שף', en: 'chef' },
+        { id: 'recommended', he: 'מומלץ', en: 'recommended' },
+        { id: 'alcoholic', he: 'אלכוהולי', en: 'alcoholic' },
+        { id: 'meat', he: 'בשרי', en: 'meat' },
+        { id: 'healthy', he: 'בריא', en: 'healthy' },
+        { id: 'fish', he: 'דגים', en: 'fish' },
+        { id: 'dairy', he: 'חלבי', en: 'dairy' }
+    ];
+
+
+    const availableCategories = [
+        { id: 'starters', he: 'ראשונות', en: 'starters' },
+        { id: 'main', he: 'עיקריות', en: 'main' },
+        { id: 'desserts', he: 'קינוחים', en: 'desserts' },
+        { id: 'drinks', he: 'שתייה', en: 'drinks' }
+    ];
+
+
+    // פונקציה שנותנת למנהל עזרה בנוגע לתגיות מוצר - אם התגית כבר קיימת היא תוסר ואם לא קיימת היא תתווסף
+    const toggleFormTag = (tagObj) => {
+        setFormTags(prev => {
+            const exists = prev.find(t => t.en === tagObj.en);
+            if (exists) return prev.filter(t => t.en !== tagObj.en);
+            return [...prev, tagObj];
+        });
+    };
 
     const { // פירוק 
         searchQuery,
@@ -73,7 +105,8 @@ const EditMenuScreen = () => {
         setFormPrice('');
         setFormCategory('');
         setFormImage('');
-        setModalVisible(true);
+        setFormTags([]);
+        setModalVisible(true);        
     };
 
 
@@ -102,7 +135,8 @@ const EditMenuScreen = () => {
             description: { he: formDescHe, en: formDescEn || formDescHe },
             price: Number(formPrice),
             category: formCategory || 'main',
-            image: formImage
+            image: formImage,
+            tags: formTags
         };
 
         if (editingProduct) {
@@ -112,6 +146,7 @@ const EditMenuScreen = () => {
         }
 
         setModalVisible(false);
+        setFormTags([]);
         fetchProducts(); 
     };
 
@@ -129,6 +164,8 @@ const EditMenuScreen = () => {
             fetchProducts(); 
         }
     };
+
+    
 
     if (loading) {
         return (
@@ -233,12 +270,52 @@ const EditMenuScreen = () => {
                             <TextInput style={[styles.modalInput, { backgroundColor: theme.card, color: theme.text, borderColor: theme.border, textAlign: isRtl ? 'right' : 'left' }]} placeholder={t('dish_name_en')} placeholderTextColor={theme.text + '80'} value={formNameEn} onChangeText={setFormNameEn} />
                             <TextInput style={[styles.modalInput, { backgroundColor: theme.card, color: theme.text, borderColor: theme.border, textAlign: isRtl ? 'right' : 'left', height: 70 }]} placeholder="תיאור המנה (אנגלית)" placeholderTextColor={theme.text + '80'} value={formDescEn} onChangeText={setFormDescEn} multiline />
                             <TextInput style={[styles.modalInput, { backgroundColor: theme.card, color: theme.text, borderColor: theme.border, textAlign: isRtl ? 'right' : 'left' }]} placeholder={t('price')} placeholderTextColor={theme.text + '80'} keyboardType="numeric" value={formPrice} onChangeText={setFormPrice} />
-                            <TextInput style={[styles.modalInput, { backgroundColor: theme.card, color: theme.text, borderColor: theme.border, textAlign: isRtl ? 'right' : 'left' }]} placeholder={t('category')} placeholderTextColor={theme.text + '80'} value={formCategory} onChangeText={setFormCategory} />
+                            <Text style={{ color: theme.text, marginTop: 10, marginBottom: 5, textAlign: isRtl ? 'right' : 'left', fontWeight: 'bold' }}>קטגוריה:</Text>
+                            {/* קטגוריות */}
+                            <View style={{ flexDirection: isRtl ? 'row-reverse' : 'row', flexWrap: 'wrap', gap: 8, marginBottom: 15 }}>
+                                {availableCategories.map(cat => {
+                                    const isSelected = formCategory === cat.id;
+                                    return (
+                                        <TouchableOpacity 
+                                            key={cat.id} 
+                                            style={{ 
+                                                paddingHorizontal: 15, paddingVertical: 8, borderRadius: 15, borderWidth: 1, 
+                                                borderColor: isSelected ? theme.primary : theme.border, 
+                                                backgroundColor: isSelected ? theme.primary + '20' : theme.card 
+                                            }}
+                                            onPress={() => setFormCategory(cat.id)}
+                                        >
+                                            <Text style={{ color: isSelected ? theme.primary : theme.text, fontSize: 13, fontWeight: isSelected ? 'bold' : 'normal' }}> {isRtl ? cat.he : cat.en}</Text>
+                                        </TouchableOpacity>
+                                    );
+                                })}
+                            </View>                            
                             <TextInput style={[styles.modalInput, { backgroundColor: theme.card, color: theme.text, borderColor: theme.border, textAlign: isRtl ? 'right' : 'left' }]} placeholder="לינק לתמונה (URL)" placeholderTextColor={theme.text + '80'} value={formImage} onChangeText={setFormImage} />
+
+                            <Text style={{ color: theme.text, marginTop: 10, marginBottom: 5, textAlign: isRtl ? 'right' : 'left', fontWeight: 'bold' }}>{language === 'he' ? 'תגיות המנה' : 'Tags'}</Text>
+                            <View style={{ flexDirection: isRtl ? 'row-reverse' : 'row', flexWrap: 'wrap', gap: 8, marginBottom: 20 }}>
+                                {availableTags.map(tag => {
+                                    const isSelected = formTags.some(t => t.en === tag.en);
+                                    return (
+                                        <TouchableOpacity 
+                                            key={tag.id} 
+                                            style={{ 
+                                                paddingHorizontal: 12, paddingVertical: 6, borderRadius: 15, borderWidth: 1, 
+                                                borderColor: isSelected ? theme.primary : theme.border, 
+                                                backgroundColor: isSelected ? theme.primary + '20' : theme.card 
+                                            }}
+                                            onPress={() => toggleFormTag({ he: tag.he, en: tag.en })}
+                                        >
+                                            <Text style={{ color: isSelected ? theme.primary : theme.text, fontSize: 12, fontWeight: isSelected ? 'bold' : 'normal' }}> {isRtl ? tag.he : tag.en}</Text>
+                                        </TouchableOpacity>
+                                    );
+                                })}
+                            </View>
+                        
                         </ScrollView>
 
                         <View style={[styles.modalButtons, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
-                            <TouchableOpacity style={[styles.modalBtn, { backgroundColor: '#E63946' }]} onPress={() => setModalVisible(false)}>
+                            <TouchableOpacity style={[styles.modalBtn, { backgroundColor: '#E63946' }]} onPress={() => {setModalVisible(false); setFormTags([]);}}>
                                 <Text style={styles.modalBtnText}>{t('cancel')}</Text>
                             </TouchableOpacity>
                             <TouchableOpacity style={[styles.modalBtn, { backgroundColor: '#2ECC71' }]} onPress={handleSave}>

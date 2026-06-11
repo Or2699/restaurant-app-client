@@ -130,6 +130,13 @@ const TablesScreen = () => {
     return (
         <View style={[styles.container, { backgroundColor: theme.background }]}>
             <Header title={t('active_tables')} /> 
+            
+            <View style={{ flexDirection: isRtl ? 'row-reverse' : 'row', alignItems: 'center', padding: 10 }}>
+                <TouchableOpacity onPress={() => navigation.navigate('(screens)/home')}>
+                    <Ionicons name="home-outline" size={28} color={theme.text} />
+                </TouchableOpacity>
+                <Text style={{ fontSize: 20, fontWeight: 'bold', color: theme.text, marginHorizontal: 15 }}> {t('active_tables')} </Text>
+            </View>
             <View style={styles.content}>
                {isLoadingTables ? (
                     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>

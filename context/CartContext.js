@@ -25,7 +25,7 @@ export const CartProvider = ({children}) => {
 
     // הסרת מנה מהעגלה
     const removeFromCart = (productId , notes) => {
-        setCart((prevCart) => prevCart.filter((item) => !(item._id === productId && item.notes === notes))); // מסננים את העגלה ומחזירים רק את הפריטים שלא תואמים למנה ולערות שהועברו כפרמטר
+        setCart((prevCart) => prevCart.filter((item) => !(item.product._id === productId && item.notes === notes)));// מסננים את העגלה ומחזירים רק את הפריטים שלא תואמים למנה ולערות שהועברו כפרמטר
     };
 
 
@@ -37,7 +37,7 @@ export const CartProvider = ({children}) => {
         }
 
          setCart((prevCart) => {
-            prevCart.map((item) => (item._id === productId && item.notes === notes) ? {...item , quantity : newQuantity} : item); 
+            return prevCart.map((item) => (item.product._id === productId && item.notes === notes) ? {...item , quantity : newQuantity} : item);
          });
    };
 
