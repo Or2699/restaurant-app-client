@@ -6,6 +6,7 @@ import { ServerContext } from '../../context/ServerContext';
 import { useNavigation, useFocusEffect } from 'expo-router';
 import Header from '../../components/header';
 import { Ionicons } from '@expo/vector-icons';
+import * as Speech from 'expo-speech';
 
 const OrdersScreen = () => {
     const { theme, t, language } = useContext(ThemeContext);
@@ -20,6 +21,7 @@ const OrdersScreen = () => {
     const [historyOrders, setHistoryOrders] = useState([]);
     const [isHistoryModalVisible, setHistoryModalVisible] = useState(false);
 
+    //  פונקציה שמביאה את פרטי ההזמנות 
     const fetchOrders = async () => {
         if (!token) return;
         const allOrders = await getMyOrders(token);
@@ -31,6 +33,7 @@ const OrdersScreen = () => {
 
     useFocusEffect(useCallback(() => { fetchOrders(); }, [token]));
 
+    // פונקציה לעדכון כמות פריט בהזמנה
     const handleUpdateQuantity = async (index, newQuantity) => {
         if (!activeOrder || activeOrder.status !== 'pending') return;
         let updatedItems = [...activeOrder.items];
@@ -53,6 +56,7 @@ const OrdersScreen = () => {
         if (!res || (!res.success && !res.data)) { fetchOrders(); }
     };
 
+    // פונקציה למחיקת הזמנה 
     const handleDeleteOrder = () => {
         Alert.alert(t('delete_order') || 'ביטול הזמנה', t('confirm_delete') || 'האם אתה בטוח?', [
             { text: t('cancel'), style: 'cancel' },
@@ -60,6 +64,7 @@ const OrdersScreen = () => {
         ]);
     };
 
+    // פונקציה לתשלום של הזמנה 
     const handlePayOrder = async () => {
         const res = await updateOrderStatus(activeOrder._id, 'paid', token);
         if (res.success || res._id) {
@@ -68,6 +73,7 @@ const OrdersScreen = () => {
         }
     };
 
+    // פונקציה להבדלה בין סטטוסים באמצעות צבעים 
     const getStatusColor = (status) => {
         switch (status) {
             case 'pending': return '#F39C12';
@@ -77,6 +83,19 @@ const OrdersScreen = () => {
             default: return '#95a5a6';
         }
     };
+
+
+    // פונקציה לדיבוב קולי של פרטי המנה 
+    const handleSpeak = (text) => {
+        if (!text) return;
+        Speech.stop(); 
+        Speech.speak(text, {
+            language: language === 'he' ? 'he-IL' : 'en-US',
+            pitch: 1.0,
+            rate: 0.9 
+        });
+    };
+
 
     return (
         <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -107,7 +126,13 @@ const OrdersScreen = () => {
 
                         {activeOrder.items.map((item, index) => (
                             <View key={index} style={[styles.itemRow, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
-                                <Text style={{ color: theme.text, flex: 1, textAlign }}>{item.quantity}x {item.product?.name?.[language] || item.product?.name?.he}</Text>
+                                {/* טקסט ודיבוב קולי */}
+                                <View style={{ flex: 1, flexDirection: isRtl ? 'row-reverse' : 'row', alignItems: 'center' }}>
+                                    <Text style={{ color: theme.text, textAlign }}>{item.quantity}x {item.product?.name?.[language] || item.product?.name?.he}</Text>
+                                    <TouchableOpacity onPress={() => handleSpeak(item.product?.name?.[language] || item.product?.name?.he)} style={{ marginHorizontal: 10 }}>
+                                        <Ionicons name="volume-medium-outline" size={20} color={theme.primary} />
+                                    </TouchableOpacity>
+                                </View>
                                 {activeOrder.status === 'pending' && (
                                     <View style={[styles.quantityControl, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
                                         <TouchableOpacity onPress={() => handleUpdateQuantity(index, item.quantity - 1)} style={styles.qtyBtn}><Ionicons name="remove" size={16} color={theme.text} /></TouchableOpacity>

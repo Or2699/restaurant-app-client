@@ -3,6 +3,9 @@ import React , {useContext} from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { ThemeContext } from '../context/ThemeContext.js';
 import { SIZES } from '../constants/sizes.js';
+import { Ionicons } from '@expo/vector-icons';
+import * as Speech from 'expo-speech';
+
 
 const DishCard = ({ product , onAddPress }) => {
     const { theme , language , isDarkMode } = useContext(ThemeContext);
@@ -11,14 +14,34 @@ const DishCard = ({ product , onAddPress }) => {
     const displayName = typeof product.name === 'object' ? (product.name[language] || product.name.he) : product.name;
     const displayDescription = typeof product.description === 'object' ? (product.description[language] || product.description.he) : product.description;
 
+    // הקראת טקסט המנה 
+    const handleSpeak = () => {
+        const textToRead = `${displayName || ''} ${displayDescription || ''}`; // מוודאים שהטקסט קיים 
+        
+        if (textToRead.trim().length > 0) {
+            Speech.stop();
+            Speech.speak(textToRead, {
+                language: language === 'he' ? 'he-IL' : 'en-US',
+                pitch: 1.0,
+                rate: 0.9
+            });
+        } else {
+            console.log("אין טקסט להקראה");
+        }
+    };
+
     return (
        
         <TouchableOpacity style = {[styles.card , {backgroundColor : theme.card , borderColor : theme.border}]} activeOpacity={0.8} >{/* כרטיס לחיצה על המנה - הרכיב הוא כפתור שעוטף את כולם והופך את כל מי שבתוכו ללחיץ */ }
             <Image style = {styles.image} source = {{uri : product.image || 'https://via.placeholder.com/150'}}/>
             <View style = {styles.infoContainer}>
-                <View style = {styles.headerRow}>
-                    <Text style = {[styles.name , {color : theme.text}]}>{displayName}</Text>
-                    <Text style = {[styles.price , { color: isDarkMode ? '#fff' : theme.primary }]}>{product.price}₪</Text>
+                <View style={[styles.headerRow, { alignItems: 'flex-start' }]}>
+                    <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap' }}>
+                            <Text style={[styles.name, { color: theme.text }]} numberOfLines={1}  ellipsizeMode="tail"  > {displayName} </Text>                        <TouchableOpacity onPress={handleSpeak} style={{ marginLeft: 5, padding: 5 }}>
+                            <Ionicons name="volume-medium-outline" size={20} color={theme.primary} />
+                        </TouchableOpacity>
+                    </View>
+                    <Text style={[styles.price, { color: isDarkMode ? '#fff' : theme.primary }]}>{product.price}₪</Text>
                 </View>
                 <Text style = {[styles.category , { color: isDarkMode ? '#fff' : theme.primary }]}>{product.category.toUpperCase()}</Text>
                 <Text style = {[styles.description , {color : theme.text}]} numberOfLines={3}>{displayDescription}</Text>
@@ -48,9 +71,7 @@ const DishCard = ({ product , onAddPress }) => {
                 </View>
 
             </View>
-        </TouchableOpacity>
-       
-        
+        </TouchableOpacity>       
     );
     
 
