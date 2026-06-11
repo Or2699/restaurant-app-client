@@ -66,14 +66,14 @@ const DashboardScreen = () => {
                 if (orderDate.getMonth() === currentMonth && orderDate.getFullYear() === currentYear) {
                     const waiterId = order.user?._id || order.user;
                     if (order.user) {
-                        const waiterId = order.user._id || order.user;
-                        const employee = staff.find(s => s._id === waiterId);
+                        const waiterId = order.assignedWaiter?._id || order.assignedWaiter; //order.user._id || order.user;
+                        const employee = staff.find(s => String(s._id) === String(waiterId));
                         
                         if (employee) {
-                            if (!waiterStats[waiterId]) {
-                                waiterStats[waiterId] = { name: employee.fullName, tables: 0 };
+                           if (!waiterStats[String(waiterId)]) {
+                                waiterStats[String(waiterId)] = { name: employee.fullName, tables: 0 };
                             }
-                            waiterStats[waiterId].tables += 1;
+                            waiterStats[String(waiterId)].tables += 1;
                         }
                     }
 
@@ -111,9 +111,22 @@ const DashboardScreen = () => {
         const bestCount = dishArray.length > 0 ? dishArray[0] : null;
         dishArray.sort((a, b) => b.revenue - a.revenue);
         const bestRev = dishArray.length > 0 ? dishArray[0] : null;
-        const waiterArray = Object.values(waiterStats);
-        waiterArray.sort((a, b) => b.tables - a.tables);
-        const bestWaiter = waiterArray.length > 0 ? waiterArray[0] : null;
+        // const waiterArray = Object.values(waiterStats);
+        // waiterArray.sort((a, b) => b.tables - a.tables);
+        // const bestWaiter = waiterArray.length > 0 ? waiterArray[0] : null;
+        let bestWaiterObj = null;
+        let maxTables = 0;
+        staff.forEach(member => {
+            const pastTables = member.shiftHistory?.filter(shift => new Date(shift.date).getMonth() === currentMonth && new Date(shift.date).getFullYear() === currentYear).reduce((sum, shift) => sum + (shift.tablesServed || 0), 0) || 0;
+            const totalTables = pastTables + (member.currentShiftTables || 0);
+
+            if (totalTables > maxTables) {
+                maxTables = totalTables;
+                bestWaiterObj = { name: member.fullName, tables: totalTables };
+            }
+        });
+
+        const bestWaiter = bestWaiterObj;
         const payoutsTemp = [];
         staff.forEach(member => {
             if (member.payoutHistory && member.payoutHistory.length > 0) {
@@ -215,7 +228,9 @@ const DashboardScreen = () => {
                                     const bonus = monthlyPayouts?.reduce((a, b) => a + (b.bonuses || 0), 0) || 0;
                                     const salary = Math.max(0, total - bonus);
                                     const max = Math.max(...staff.map(s => s.payoutHistory?.filter(p => new Date(p.date).getMonth() === currentMonth && new Date(p.date).getFullYear() === currentYear).reduce((a, b) => a + (b.amount || 0), 0) || 1), 1);                                    
-                                    const servedTables = waitersTableStats[member._id]?.tables || 0;
+                                    const pastTables = member.shiftHistory?.filter(shift => new Date(shift.date).getMonth() === currentMonth && new Date(shift.date).getFullYear() === currentYear).reduce((sum, shift) => sum + (shift.tablesServed || 0), 0) || 0;
+                                    const servedTables = pastTables + (member.currentShiftTables || 0);
+                                    //const servedTables = waitersTableStats[String(member._id)]?.tables || 0;
                                     return (
                                         <TouchableOpacity key={member._id} style={styles.barColumn} onPress={() => alert(`${t('salary')}: ₪${Math.round(salary)}\n${t('bonus')}: ₪${Math.round(bonus)}\n${t('tables_served')}: ${servedTables}`)}>
                                             <Text style={{ fontSize: 9, fontWeight: 'bold', color: theme.text, marginBottom: 5 }}>₪{Math.round(total)}</Text>

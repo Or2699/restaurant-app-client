@@ -37,7 +37,8 @@ const DishCard = ({ product , onAddPress }) => {
             <View style = {styles.infoContainer}>
                 <View style={[styles.headerRow, { alignItems: 'flex-start' }]}>
                     <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap' }}>
-                            <Text style={[styles.name, { color: theme.text }]} numberOfLines={1}  ellipsizeMode="tail"  > {displayName} </Text>                        <TouchableOpacity onPress={handleSpeak} style={{ marginLeft: 5, padding: 5 }}>
+                            <Text style={[styles.name, { color: theme.text }]} numberOfLines={1}  ellipsizeMode="tail"  > {displayName} </Text>                        
+                        <TouchableOpacity onPress={handleSpeak} style={{ marginLeft: 5, padding: 5 }}>
                             <Ionicons name="volume-medium-outline" size={20} color={theme.primary} />
                         </TouchableOpacity>
                     </View>
